@@ -2,6 +2,8 @@ use foreign_types::{foreign_type, ForeignType, ForeignTypeRef};
 
 use crate::{asn1::{Asn1IntegerRef, Asn1TimeRef}, bio::SslBio, error::ErrorStack, evp::{EvpPkeyRef, Public}, ssl::*};
 
+use super::X509NameRef;
+
 foreign_type! {
     pub unsafe type X509Cert: Sync + Send {
         type CType = X509;
@@ -14,6 +16,18 @@ impl X509CertRef {
     pub fn serial(&self) -> &Asn1IntegerRef {
         unsafe {
             Asn1IntegerRef::from_ptr(X509_get0_serialNumber(self.as_ptr()) as *mut _)
+        }
+    }
+
+    pub fn subject(&self) -> &X509NameRef {
+        unsafe {
+            X509NameRef::from_ptr(X509_get_subject_name(self.as_ptr()))
+        }
+    }
+
+    pub fn issuer(&self) -> &X509NameRef {
+        unsafe {
+            X509NameRef::from_ptr(X509_get_issuer_name(self.as_ptr()))
         }
     }
 
@@ -63,10 +77,14 @@ mod test {
         let cert = include_bytes!("../../google.cer");
         let x509 = X509Cert::try_from(cert.to_vec()).unwrap();
         let serial = x509.serial();
+        let subject = x509.subject();
+        let issuer = x509.issuer();
         let not_before = x509.not_before();
         let not_after = x509.not_after();
         let pub_key = x509.pub_key();
         println!("SERIAL: {serial}");
+        println!("subject: {subject}");
+        println!("issuer: {issuer}");
         println!("not_before: {not_before}");
         println!("not_after: {not_after}");
         println!("pub_key: {pub_key}");

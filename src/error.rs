@@ -17,7 +17,7 @@ impl ErrorStack {
             ERR_print_errors(bio.as_ptr());
             ErrorStack {
                 code: ERR_get_error(),
-                reason: String::new(),
+                reason: String::from_utf8(bio.get_data().to_vec()).unwrap_or_default(),
             }
         }
     }
