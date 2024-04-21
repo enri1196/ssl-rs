@@ -1,8 +1,10 @@
-mod integer;
+mod asn1_integer;
+mod asn1_time;
 
 // use crate::ssl::*;
 
-pub use integer::*;
+pub use asn1_integer::*;
+pub use asn1_time::*;
 
 // #[repr(u32)]
 // pub enum Asn1Type {
