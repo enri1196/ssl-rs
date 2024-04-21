@@ -1,6 +1,6 @@
 use foreign_types::{foreign_type, ForeignType, ForeignTypeRef};
 
-use crate::{asn1::IntegerRef, bio::SslBio, error::ErrorStack, evp::{EvpPkeyRef, Public}, ssl::*};
+use crate::{asn1::{Asn1IntegerRef, Asn1TimeRef}, bio::SslBio, error::ErrorStack, evp::{EvpPkeyRef, Public}, ssl::*};
 
 foreign_type! {
     pub unsafe type X509Cert: Sync + Send {
@@ -11,9 +11,21 @@ foreign_type! {
 }
 
 impl X509CertRef {
-    pub fn serial(&self) -> &IntegerRef {
+    pub fn serial(&self) -> &Asn1IntegerRef {
         unsafe {
-            IntegerRef::from_ptr(X509_get0_serialNumber(self.as_ptr()) as *mut _)
+            Asn1IntegerRef::from_ptr(X509_get0_serialNumber(self.as_ptr()) as *mut _)
+        }
+    }
+
+    pub fn not_before(&self) -> &Asn1TimeRef {
+        unsafe {
+            Asn1TimeRef::from_ptr(X509_get0_notBefore(self.as_ptr()) as *mut _)
+        }
+    }
+
+    pub fn not_after(&self) -> &Asn1TimeRef {
+        unsafe {
+            Asn1TimeRef::from_ptr(X509_get0_notAfter(self.as_ptr()) as *mut _)
         }
     }
 
@@ -51,8 +63,12 @@ mod test {
         let cert = include_bytes!("../../google.cer");
         let x509 = X509Cert::try_from(cert.to_vec()).unwrap();
         let serial = x509.serial();
+        let not_before = x509.not_before();
+        let not_after = x509.not_after();
         let pub_key = x509.pub_key();
         println!("SERIAL: {serial}");
-        println!("pub_key: {}", pub_key.size());
+        println!("not_before: {not_before}");
+        println!("not_after: {not_after}");
+        println!("pub_key: {pub_key}");
     }
 }
