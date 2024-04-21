@@ -71,12 +71,12 @@ impl TryFrom<EvpPkey<Private>> for EvpPkey<Public> {
     }
 }
 
-impl Display for EvpPkey<Private> {
+impl Display for EvpPkeyRef<Private> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         unsafe {
-            let mem = SslBio::memory();
+            let bio = SslBio::memory();
             crate::check_code(PEM_write_bio_PrivateKey_ex(
-                mem.as_ptr(),
+                bio.as_ptr(),
                 self.as_ptr() as *const _,
                 std::ptr::null_mut(),
                 std::ptr::null_mut(),
@@ -87,7 +87,23 @@ impl Display for EvpPkey<Private> {
                 std::ptr::null_mut()
             ))
             .unwrap();
-            write!(f, "")
+            write!(f, "{}", std::str::from_utf8(bio.get_data()).unwrap())
+        }
+    }
+}
+
+impl Display for EvpPkeyRef<Public> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        unsafe {
+            let bio = SslBio::memory();
+            crate::check_code(PEM_write_bio_PUBKEY_ex(
+                bio.as_ptr(),
+                self.as_ptr() as *const _,
+                std::ptr::null_mut(),
+                std::ptr::null_mut()
+            ))
+            .unwrap();
+            write!(f, "{}", std::str::from_utf8(bio.get_data()).unwrap())
         }
     }
 }
