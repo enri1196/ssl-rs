@@ -50,12 +50,11 @@ impl X509CertRef {
     }
 }
 
-impl TryFrom<Vec<u8>> for X509Cert {
+impl TryFrom<&[u8]> for X509Cert {
     type Error = ErrorStack;
 
-    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+    fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
         unsafe {
-            let value = value;
             let bio = SslBio::from(value.as_ref());
             let x509 = crate::check_ptr(PEM_read_bio_X509(
                 bio.as_ptr(),
@@ -75,7 +74,7 @@ mod test {
     #[test]
     pub fn test_cert() {
         let cert = include_bytes!("../../google.cer");
-        let x509 = X509Cert::try_from(cert.to_vec()).unwrap();
+        let x509 = X509Cert::try_from(cert.as_ref()).unwrap();
         let serial = x509.serial();
         let subject = x509.subject();
         let issuer = x509.issuer();
