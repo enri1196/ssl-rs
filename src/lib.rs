@@ -9,7 +9,16 @@ pub mod evp;
 pub mod ossl_param;
 pub mod x509;
 
-use std::ffi::{c_int, c_long};
+use std::{ffi::{c_int, c_long}, sync::Once};
+
+pub fn init() {
+    const INIT_OPTIONS: u32 = ssl::OPENSSL_INIT_LOAD_SSL_STRINGS | ssl::OPENSSL_INIT_NO_ATEXIT;
+
+    static SSL_INIT: Once = Once::new();
+    SSL_INIT.call_once(|| unsafe {
+        ssl::OPENSSL_init_ssl(INIT_OPTIONS as u64, std::ptr::null_mut());
+    })
+}
 
 #[inline]
 fn check_ptr<T>(r: *mut T) -> Result<*mut T, error::ErrorStack> {
