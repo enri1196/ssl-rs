@@ -36,18 +36,6 @@ impl BigNumRef {
     }
 }
 
-impl Display for BigNum {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        unsafe {
-            let bn = BN_bn2dec(self.as_ptr() as *const _);
-            let c_bn = CString::from_raw(bn);
-            let s = String::from_utf8(c_bn.into_bytes_with_nul())
-                .map_err(|_| std::fmt::Error::default())?;
-            write!(f, "{s}")
-        }
-    }
-}
-
 impl TryFrom<&[u8]> for BigNum {
     type Error = ErrorStack;
 
@@ -59,6 +47,18 @@ impl TryFrom<&[u8]> for BigNum {
                 std::ptr::null_mut(),
             ))?;
             Ok(Self(NonNull::new_unchecked(bn)))
+        }
+    }
+}
+
+impl Display for BigNumRef {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        unsafe {
+            let bn = BN_bn2dec(self.as_ptr() as *const _);
+            let c_bn = CString::from_raw(bn);
+            let s = String::from_utf8(c_bn.into_bytes_with_nul())
+                .map_err(|_| std::fmt::Error::default())?;
+            write!(f, "{s}")
         }
     }
 }
