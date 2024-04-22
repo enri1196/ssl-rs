@@ -48,6 +48,10 @@ impl X509CertRef {
             EvpPkeyRef::<Public>::from_ptr(X509_get0_pubkey(self.as_ptr()))
         }
     }
+
+    pub fn ext_len(&self) -> i32 {
+        unsafe { X509_get_ext_count(self.as_ptr()) }
+    }
 }
 
 impl TryFrom<&[u8]> for X509Cert {
