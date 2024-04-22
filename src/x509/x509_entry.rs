@@ -1,4 +1,7 @@
+use std::fmt::Display;
+
 use foreign_types::foreign_type;
+use strum::AsRefStr;
 
 use crate::ssl::*;
 
@@ -10,9 +13,24 @@ foreign_type! {
     }
 }
 
+#[derive(Clone, Copy, Debug, AsRefStr)]
 pub enum X509Entries {
     C,
     CN,
+    DC,
+    Email,
+    GivenName,
+    L,
     O,
     OU,
+    SN,
+    ST,
+    Surname,
+    UID,
+}
+
+impl Display for X509Entries {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{self:?}")
+    }
 }

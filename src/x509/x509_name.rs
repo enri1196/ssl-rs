@@ -4,7 +4,7 @@ use foreign_types::{foreign_type, ForeignType, ForeignTypeRef};
 
 use crate::{bio::SslBio, ssl::*};
 
-use super::X509NameEntryRef;
+use super::{X509Entries, X509NameEntryRef};
 
 foreign_type! {
     pub unsafe type X509Name: Sync + Send {
@@ -51,11 +51,26 @@ impl X509NameBuilder {
         Self(X509Name::default())
     }
 
-    pub fn add_entry(self, key: &str, value: &str) -> Self {
+    pub fn add_entry_txt(self, key: &str, value: &str) -> Self {
         unsafe {
             X509_NAME_add_entry_by_txt(
                 self.0.as_ptr(),
                 key.as_ptr(),
+                MBSTRING_ASC as i32,
+                value.as_ptr(),
+                -1,
+                -1,
+                0,
+            );
+            self
+        }
+    }
+
+    pub fn add_entry(self, key: X509Entries, value: &str) -> Self {
+        unsafe {
+            X509_NAME_add_entry_by_txt(
+                self.0.as_ptr(),
+                key.as_ref().as_ptr(),
                 MBSTRING_ASC as i32,
                 value.as_ptr(),
                 -1,
