@@ -1,8 +1,8 @@
-use foreign_types::{foreign_type, ForeignTypeRef};
+use foreign_types::{foreign_type, ForeignType, ForeignTypeRef};
 
 use std::{ffi::CString, fmt::Display, ptr::NonNull};
 
-use crate::{error::ErrorStack, ssl::*};
+use crate::{asn1::Asn1IntegerRef, error::ErrorStack, ssl::*};
 
 foreign_type! {
     pub unsafe type BigNum: Sync + Send {
@@ -34,6 +34,10 @@ impl BigNumRef {
     pub fn is_odd(&self) -> bool {
         unsafe { BN_is_odd(self.as_ptr() as *const _) == 0 }
     }
+
+    pub fn len(&self) -> usize {
+        unsafe { ((BN_num_bits(self.as_ptr()) + 7) / 8) as usize }
+    }
 }
 
 impl TryFrom<&[u8]> for BigNum {
@@ -46,7 +50,18 @@ impl TryFrom<&[u8]> for BigNum {
                 value.len().try_into().unwrap(),
                 std::ptr::null_mut(),
             ))?;
-            Ok(Self(NonNull::new_unchecked(bn)))
+            Ok(Self::from_ptr(bn))
+        }
+    }
+}
+
+impl TryFrom<&Asn1IntegerRef> for BigNum {
+    type Error = ErrorStack;
+
+    fn try_from(value: &Asn1IntegerRef) -> Result<Self, Self::Error> {
+        unsafe {
+            let bn = crate::check_ptr(ASN1_INTEGER_to_BN(value.as_ptr(), std::ptr::null_mut()))?;
+            Ok(Self::from_ptr(bn))
         }
     }
 }
