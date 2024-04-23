@@ -2,8 +2,8 @@ mod basic_constraints;
 
 pub use basic_constraints::*;
 
-use crate::ssl::*;
 use super::X509Ext;
+use crate::ssl::*;
 
 pub trait ToExt {
     fn to_ext(&self) -> X509Ext;
@@ -25,8 +25,8 @@ impl X509ExtNid {
     }
 
     pub const BASIC_CONSTRAINTS: X509ExtNid = X509ExtNid(
-        unsafe{std::str::from_utf8_unchecked(SN_basic_constraints)},
-        unsafe{std::str::from_utf8_unchecked(LN_basic_constraints)},
-        NID_basic_constraints as i32
+        unsafe { std::str::from_utf8_unchecked(SN_basic_constraints) },
+        unsafe { std::str::from_utf8_unchecked(LN_basic_constraints) },
+        NID_basic_constraints as i32,
     );
 }

@@ -1,7 +1,7 @@
+mod dh;
+mod dsa;
 mod ec;
 mod rsa;
-mod dsa;
-mod dh;
 
 use foreign_types::foreign_type;
 

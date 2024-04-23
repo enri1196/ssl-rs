@@ -9,7 +9,10 @@ pub mod evp;
 pub mod ossl_param;
 pub mod x509;
 
-use std::{ffi::{c_int, c_long}, sync::Once};
+use std::{
+    ffi::{c_int, c_long},
+    sync::Once,
+};
 
 pub fn init() {
     const INIT_OPTIONS: u32 = ssl::OPENSSL_INIT_LOAD_SSL_STRINGS | ssl::OPENSSL_INIT_NO_ATEXIT;

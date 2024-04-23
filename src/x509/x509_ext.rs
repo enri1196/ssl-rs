@@ -10,6 +10,4 @@ foreign_type! {
     }
 }
 
-impl X509ExtRef {
-
-}
+impl X509ExtRef {}

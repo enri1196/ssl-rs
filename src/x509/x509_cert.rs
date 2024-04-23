@@ -1,6 +1,12 @@
 use foreign_types::{foreign_type, ForeignType, ForeignTypeRef};
 
-use crate::{asn1::{Asn1IntegerRef, Asn1TimeRef}, bio::SslBio, error::ErrorStack, evp::{EvpPkeyRef, Public}, ssl::*};
+use crate::{
+    asn1::{Asn1IntegerRef, Asn1TimeRef},
+    bio::SslBio,
+    error::ErrorStack,
+    evp::{EvpPkeyRef, Public},
+    ssl::*,
+};
 
 use super::X509NameRef;
 
@@ -14,39 +20,27 @@ foreign_type! {
 
 impl X509CertRef {
     pub fn serial(&self) -> &Asn1IntegerRef {
-        unsafe {
-            Asn1IntegerRef::from_ptr(X509_get0_serialNumber(self.as_ptr()) as *mut _)
-        }
+        unsafe { Asn1IntegerRef::from_ptr(X509_get0_serialNumber(self.as_ptr()) as *mut _) }
     }
 
     pub fn subject(&self) -> &X509NameRef {
-        unsafe {
-            X509NameRef::from_ptr(X509_get_subject_name(self.as_ptr()))
-        }
+        unsafe { X509NameRef::from_ptr(X509_get_subject_name(self.as_ptr())) }
     }
 
     pub fn issuer(&self) -> &X509NameRef {
-        unsafe {
-            X509NameRef::from_ptr(X509_get_issuer_name(self.as_ptr()))
-        }
+        unsafe { X509NameRef::from_ptr(X509_get_issuer_name(self.as_ptr())) }
     }
 
     pub fn not_before(&self) -> &Asn1TimeRef {
-        unsafe {
-            Asn1TimeRef::from_ptr(X509_get0_notBefore(self.as_ptr()) as *mut _)
-        }
+        unsafe { Asn1TimeRef::from_ptr(X509_get0_notBefore(self.as_ptr()) as *mut _) }
     }
 
     pub fn not_after(&self) -> &Asn1TimeRef {
-        unsafe {
-            Asn1TimeRef::from_ptr(X509_get0_notAfter(self.as_ptr()) as *mut _)
-        }
+        unsafe { Asn1TimeRef::from_ptr(X509_get0_notAfter(self.as_ptr()) as *mut _) }
     }
 
     pub fn pub_key(&self) -> &EvpPkeyRef<Public> {
-        unsafe {
-            EvpPkeyRef::<Public>::from_ptr(X509_get0_pubkey(self.as_ptr()))
-        }
+        unsafe { EvpPkeyRef::<Public>::from_ptr(X509_get0_pubkey(self.as_ptr())) }
     }
 
     pub fn ext_len(&self) -> i32 {

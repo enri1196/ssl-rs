@@ -2,7 +2,7 @@ use foreign_types::ForeignType;
 
 use crate::{
     error::ErrorStack,
-    evp::{EvpPkey, Private, DsaKey},
+    evp::{DsaKey, EvpPkey, Private},
     ssl::*,
 };
 
@@ -18,7 +18,10 @@ impl EvpCtx<Private, DsaKey> {
             ));
             let m_key = EvpPkey::<Private>::default();
             crate::check_code(EVP_PKEY_paramgen_init(ctx.as_ptr()))?;
-            crate::check_code(EVP_PKEY_CTX_set_dsa_paramgen_bits(ctx.as_ptr(), bits as i32))?;
+            crate::check_code(EVP_PKEY_CTX_set_dsa_paramgen_bits(
+                ctx.as_ptr(),
+                bits as i32,
+            ))?;
             crate::check_code(EVP_PKEY_generate(
                 ctx.as_ptr(),
                 &mut m_key.as_ptr() as *mut *mut _,
@@ -30,7 +33,7 @@ impl EvpCtx<Private, DsaKey> {
 
 #[cfg(test)]
 mod test {
-    use crate::evp::{evp_ctx::EvpCtx, Private, DsaKey};
+    use crate::evp::{evp_ctx::EvpCtx, DsaKey, Private};
 
     #[test]
     pub fn test_dsa() {

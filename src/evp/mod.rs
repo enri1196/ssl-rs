@@ -84,7 +84,7 @@ impl Display for EvpPkeyRef<Private> {
                 None,
                 std::ptr::null_mut(),
                 std::ptr::null_mut(),
-                std::ptr::null_mut()
+                std::ptr::null_mut(),
             ))
             .unwrap();
             write!(f, "{}", std::str::from_utf8(bio.get_data()).unwrap())
@@ -100,7 +100,7 @@ impl Display for EvpPkeyRef<Public> {
                 bio.as_ptr(),
                 self.as_ptr() as *const _,
                 std::ptr::null_mut(),
-                std::ptr::null_mut()
+                std::ptr::null_mut(),
             ))
             .unwrap();
             write!(f, "{}", std::str::from_utf8(bio.get_data()).unwrap())
