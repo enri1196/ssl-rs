@@ -33,11 +33,11 @@ impl EvpCtx<Private, EcKey> {
 
 #[cfg(test)]
 mod test {
-    use crate::evp::{evp_ctx::EvpCtx, EcKey, Private};
+    use crate::evp::{EcKey, EvpPkey, Private};
 
     #[test]
     pub fn test_ec() {
-        let key = EvpCtx::<Private, EcKey>::generate(EcKey::SECP_256K1).unwrap();
+        let key = EvpPkey::<Private>::try_from(EcKey::SECP_256K1).unwrap();
         println!("{}", key.to_string());
         println!("{}", key.get_public().unwrap().to_string());
         assert_eq!(408, key.id().get_raw());
@@ -46,7 +46,7 @@ mod test {
 
     #[test]
     pub fn test_ec_25519() {
-        let key = EvpCtx::<Private, EcKey>::generate(EcKey::X25519).unwrap();
+        let key = EvpPkey::<Private>::try_from(EcKey::X25519).unwrap();
         println!("{}", key.to_string());
         println!("{}", key.get_public().unwrap().to_string());
         assert_eq!(1034, key.id().get_raw());
