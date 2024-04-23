@@ -30,11 +30,11 @@ impl EvpCtx<Private, RsaKey> {
 
 #[cfg(test)]
 mod test {
-    use crate::evp::{evp_ctx::EvpCtx, Private, RsaKey};
+    use crate::evp::{EvpPkey, Private, RsaKey};
 
     #[test]
     pub fn test_rsa() {
-        let key = EvpCtx::<Private, RsaKey>::generate(RsaKey::RSA_2048_BITS).unwrap();
+        let key = EvpPkey::<Private>::try_from(RsaKey::RSA_2048_BITS).unwrap();
         println!("{}", key.to_string());
         println!("{}", key.get_public().unwrap().to_string());
         assert_eq!(6, key.id().get_raw());
