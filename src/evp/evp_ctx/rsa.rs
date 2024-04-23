@@ -35,7 +35,8 @@ mod test {
     #[test]
     pub fn test_rsa() {
         let key = EvpCtx::<Private, RsaKey>::generate(RsaKey::RSA_2048_BITS).unwrap();
-        // println!("{}", key);
+        println!("{}", key.to_string());
+        println!("{}", key.get_public().unwrap().to_string());
         assert_eq!(6, key.id().get_raw());
         assert_eq!(256, key.size());
     }

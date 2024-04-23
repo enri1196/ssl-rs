@@ -21,7 +21,7 @@ foreign_type! {
 
 impl<KT: KeyType> EvpPkeyRef<KT> {
     pub fn id(&self) -> EvpId {
-        unsafe { EvpId::from(EVP_PKEY_get_id(self.as_ptr()) as u32) }
+        unsafe { (EVP_PKEY_get_id(self.as_ptr()) as u32).into() }
     }
 
     pub fn size(&self) -> i32 {
@@ -31,8 +31,17 @@ impl<KT: KeyType> EvpPkeyRef<KT> {
 
 impl EvpPkey<Private> {
     pub fn get_public(&self) -> Result<EvpPkey<Public>, ErrorStack> {
-        match self.id() {
-            _ => todo!(),
+        unsafe {
+            let bio = SslBio::memory();
+            crate::check_code(PEM_write_bio_PUBKEY(bio.as_ptr(), self.as_ptr()))?;
+            let pub_key = crate::check_ptr(PEM_read_bio_PUBKEY(
+                bio.as_ptr(),
+                std::ptr::null_mut(),
+                None,
+                std::ptr::null_mut(),
+            ))?;
+
+            Ok(EvpPkey::<Public>::from_ptr(pub_key))
         }
     }
 }
