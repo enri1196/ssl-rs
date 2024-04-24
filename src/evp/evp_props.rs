@@ -68,6 +68,9 @@ impl RsaKey {
     pub const RSA_1024_BITS: RsaKey = RsaKey(EvpId::RsaId, 1024);
     pub const RSA_2048_BITS: RsaKey = RsaKey(EvpId::RsaId, 2048);
     pub const RSA_4096_BITS: RsaKey = RsaKey(EvpId::RsaId, 4096);
+    pub const RSA_PSS_1024_BITS: RsaKey = RsaKey(EvpId::RsaPssId, 1024);
+    pub const RSA_PSS_2048_BITS: RsaKey = RsaKey(EvpId::RsaPssId, 2048);
+    pub const RSA_PSS_4096_BITS: RsaKey = RsaKey(EvpId::RsaPssId, 4096);
 }
 
 #[derive(Clone, Copy, Debug)]
