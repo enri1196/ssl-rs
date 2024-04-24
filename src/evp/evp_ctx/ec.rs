@@ -12,10 +12,7 @@ impl EvpCtx<Private, EcKey> {
     pub fn generate(value: EcKey) -> Result<EvpPkey<Private>, ErrorStack> {
         unsafe {
             let EcKey(id, nid) = value;
-            let ctx = Self::from_ptr(EVP_PKEY_CTX_new_id(
-                id.get_raw() as i32,
-                std::ptr::null_mut(),
-            ));
+            let ctx = Self::from(id);
             let m_key = EvpPkey::default();
             crate::check_code(EVP_PKEY_keygen_init(ctx.as_ptr()))?;
             crate::check_code(EVP_PKEY_CTX_set_ec_paramgen_curve_nid(
