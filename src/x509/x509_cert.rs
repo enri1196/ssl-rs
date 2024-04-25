@@ -9,7 +9,7 @@ use crate::{
 };
 
 use super::{
-    extensions::{ExtendedKeyUsage, KeyUsage},
+    extensions::{ExtKeyUsage, KeyUsage},
     X509NameRef,
 };
 
@@ -54,8 +54,8 @@ impl X509CertRef {
         unsafe { KeyUsage::from_raw(X509_get_key_usage(self.as_ptr())) }
     }
 
-    pub fn get_ext_key_usage(&self) -> Option<ExtendedKeyUsage> {
-        unsafe { ExtendedKeyUsage::from_raw(X509_get_extended_key_usage(self.as_ptr())) }
+    pub fn get_ext_key_usage(&self) -> Option<ExtKeyUsage> {
+        unsafe { ExtKeyUsage::from_raw(X509_get_extended_key_usage(self.as_ptr())) }
     }
 }
 

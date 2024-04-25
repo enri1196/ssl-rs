@@ -1,6 +1,10 @@
 use std::fmt::Display;
 
-use crate::ssl::*;
+use foreign_types::ForeignType;
+
+use crate::{ssl::*, x509::X509Ext};
+
+use super::{ToExt, X509ExtNid};
 
 #[derive(Debug, Clone, Copy, Default)]
 #[repr(u32)]
@@ -18,10 +22,10 @@ pub enum ExtKeyUsageValue {
 }
 
 #[derive(Debug, Clone, Copy, Default)]
-pub struct ExtendedKeyUsage(u32);
+pub struct ExtKeyUsage(u32);
 
-impl ExtendedKeyUsage {
-    pub fn from_raw(value: u32) -> Option<ExtendedKeyUsage> {
+impl ExtKeyUsage {
+    pub fn from_raw(value: u32) -> Option<Self> {
         use ExtKeyUsageValue::*;
         // Define constants for valid key usage flags
         const VALID_FLAGS: u32 = SslServer as u32
@@ -35,7 +39,7 @@ impl ExtendedKeyUsage {
 
         // Check if the value contains any invalid flags
         if value & !VALID_FLAGS == 0 {
-            Some(ExtendedKeyUsage(value))
+            Some(Self(value))
         } else {
             None
         }
@@ -47,9 +51,9 @@ impl ExtendedKeyUsage {
     }
 }
 
-impl From<&[ExtKeyUsageValue]> for ExtendedKeyUsage {
+impl From<&[ExtKeyUsageValue]> for ExtKeyUsage {
     fn from(value: &[ExtKeyUsageValue]) -> Self {
-        let mut ku = ExtendedKeyUsage::default();
+        let mut ku = ExtKeyUsage::default();
         for val in value {
             ku.0 |= *val as u32;
         }
@@ -57,7 +61,30 @@ impl From<&[ExtKeyUsageValue]> for ExtendedKeyUsage {
     }
 }
 
-impl Display for ExtendedKeyUsage {
+impl ToExt for ExtKeyUsage {
+    fn to_ext(&self) -> crate::x509::X509Ext {
+        unsafe {
+            let ctx = std::ptr::null_mut();
+            X509V3_set_ctx(
+                ctx,
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+                0,
+            );
+
+            X509Ext::from_ptr(X509V3_EXT_conf_nid(
+                std::ptr::null_mut(),
+                ctx,
+                X509ExtNid::EXT_KEY_USAGE.nid(),
+                self.to_string().as_ptr(),
+            ))
+        }
+    }
+}
+
+impl Display for ExtKeyUsage {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use ExtKeyUsageValue::*;
         let mut ekus = String::new();

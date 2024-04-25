@@ -1,8 +1,10 @@
 use std::fmt::Display;
 
-use crate::ssl::*;
+use foreign_types::ForeignType;
 
-use super::ToExt;
+use crate::{ssl::*, x509::X509Ext};
+
+use super::{ToExt, X509ExtNid};
 
 #[derive(Debug, Clone, Copy, Default)]
 #[repr(u32)]
@@ -63,7 +65,24 @@ impl From<&[KeyUsageValue]> for KeyUsage {
 
 impl ToExt for KeyUsage {
     fn to_ext(&self) -> crate::x509::X509Ext {
-        todo!()
+        unsafe {
+            let ctx = std::ptr::null_mut();
+            X509V3_set_ctx(
+                ctx,
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+                0,
+            );
+
+            X509Ext::from_ptr(X509V3_EXT_conf_nid(
+                std::ptr::null_mut(),
+                ctx,
+                X509ExtNid::KEY_USAGE.nid(),
+                self.to_string().as_ptr(),
+            ))
+        }
     }
 }
 
