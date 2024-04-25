@@ -57,7 +57,7 @@ impl From<&[KeyUsageValue]> for KeyUsage {
     fn from(value: &[KeyUsageValue]) -> Self {
         let mut ku = KeyUsage::default();
         for val in value {
-          ku.0 |= *val as u32;
+            ku.0 |= *val as u32;
         }
         return ku;
     }

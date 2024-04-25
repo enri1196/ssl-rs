@@ -28,6 +28,6 @@ impl X509Store {
 
 impl Default for X509Store {
     fn default() -> Self {
-        unsafe{Self::from_ptr(X509_STORE_new())}
+        unsafe { Self::from_ptr(X509_STORE_new()) }
     }
 }
