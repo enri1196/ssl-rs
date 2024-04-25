@@ -8,7 +8,7 @@ use crate::{
     ssl::*,
 };
 
-use super::X509NameRef;
+use super::{extensions::KeyUsage, X509NameRef};
 
 foreign_type! {
     pub unsafe type X509Cert: Sync + Send {
@@ -46,6 +46,12 @@ impl X509CertRef {
     pub fn ext_len(&self) -> i32 {
         unsafe { X509_get_ext_count(self.as_ptr()) }
     }
+
+    pub fn get_key_usage(&self) -> Option<KeyUsage> {
+        unsafe {
+            KeyUsage::from_raw(X509_get_key_usage(self.as_ptr()))
+        }
+    }
 }
 
 impl TryFrom<&[u8]> for X509Cert {
@@ -79,6 +85,8 @@ mod test {
         let not_before = x509.not_before();
         let not_after = x509.not_after();
         let pub_key = x509.pub_key();
+        let ku = x509.get_key_usage()
+            .map(|v| v.to_string());
         println!("SERIAL: {serial}");
         println!("subject: {subject}");
         println!("issuer: {issuer}");
@@ -89,5 +97,6 @@ mod test {
             not_after.to_date_time().unwrap().to_rfc3339()
         );
         println!("pub_key: {pub_key}");
+        println!("Key Usage: {ku:?}", )
     }
 }
