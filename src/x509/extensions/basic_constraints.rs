@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use foreign_types::ForeignType;
 
 use crate::{ssl::*, x509::X509Ext};
@@ -20,8 +22,10 @@ impl BasicConstraints {
             pathlen,
         }
     }
+}
 
-    pub fn to_value(&self) -> String {
+impl Display for BasicConstraints {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut value = String::new();
         if self.critical {
             value.push_str("critical,");
@@ -34,7 +38,7 @@ impl BasicConstraints {
         if let Some(pathlen) = self.pathlen {
             value.push_str(&format!(",pathlen:{pathlen}"))
         }
-        value
+        write!(f, "{value}")
     }
 }
 
@@ -55,8 +59,23 @@ impl ToExt for BasicConstraints {
                 std::ptr::null_mut(),
                 ctx,
                 X509ExtNid::BASIC_CONSTRAINTS.nid(),
-                self.to_value().as_ptr(),
+                self.to_string().as_ptr(),
             ))
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::x509::extensions::ToExt;
+
+    use super::BasicConstraints;
+
+    #[test]
+    pub fn test_basic_constraints() {
+        let bc = BasicConstraints::new(true, true, None);
+        let bc_ext = bc.to_ext();
+        println!("OID: {}", bc_ext.get_oid());
+        assert_eq!("2.5.29.19", bc_ext.get_oid())
     }
 }
