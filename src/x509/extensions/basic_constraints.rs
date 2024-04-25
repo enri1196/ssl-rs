@@ -32,7 +32,7 @@ impl BasicConstraints {
             value.push_str("CA:FALSE");
         }
         if let Some(pathlen) = self.pathlen {
-            value.push_str(&format!(",pathlen:{}", pathlen))
+            value.push_str(&format!(",pathlen:{pathlen}"))
         }
         value
     }
