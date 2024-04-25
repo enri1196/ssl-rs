@@ -6,8 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+libc = "0.2.153"
 thiserror = "1.0.58"
 foreign-types = "0.5.0"
+chrono = "0.4.38"
 
 ssl-sys = { path = "./ssl-sys" }
 strum = { version = "0.26.2", features = ["derive"] }

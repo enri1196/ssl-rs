@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+use chrono::{DateTime, Utc};
 use foreign_types::{foreign_type, ForeignTypeRef};
 
 use crate::{bio::SslBio, ssl::*};
@@ -31,7 +32,16 @@ impl PartialOrd for Asn1TimeRef {
     }
 }
 
-impl Asn1Time {}
+impl Asn1TimeRef {
+    pub fn to_date_time(&self) -> Option<DateTime<Utc>> {
+        unsafe {
+            let mut tm = std::mem::MaybeUninit::<libc::tm>::uninit();
+            ASN1_TIME_to_tm(self.as_ptr(), tm.as_mut_ptr() as *mut _);
+            let secs = libc::mktime(tm.as_mut_ptr());
+            DateTime::from_timestamp(secs, 0)
+        }
+    }
+}
 
 impl Display for Asn1TimeRef {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

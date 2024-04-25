@@ -84,6 +84,10 @@ mod test {
         println!("issuer: {issuer}");
         println!("not_before: {not_before}");
         println!("not_after: {not_after}");
+        println!(
+            "not_after: {}",
+            not_after.to_date_time().unwrap().to_rfc3339()
+        );
         println!("pub_key: {pub_key}");
     }
 }

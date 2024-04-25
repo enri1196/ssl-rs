@@ -31,16 +31,16 @@ impl EvpId {
 impl From<u32> for EvpId {
     fn from(value: u32) -> Self {
         match value {
-            EVP_PKEY_RSA => EvpId::RsaId, 
-            EVP_PKEY_RSA_PSS => EvpId::RsaPssId, 
-            EVP_PKEY_EC => EvpId::EcId, 
-            EVP_PKEY_DSA => EvpId::DsaId, 
-            EVP_PKEY_DH => EvpId::DhId, 
-            EVP_PKEY_X25519 => EvpId::X25519Id, 
-            EVP_PKEY_X448 => EvpId::X448Id, 
-            EVP_PKEY_ED25519 => EvpId::Ed25519Id, 
-            EVP_PKEY_ED448 => EvpId::Ed448Id, 
-            _ => unreachable!()
+            EVP_PKEY_RSA => EvpId::RsaId,
+            EVP_PKEY_RSA_PSS => EvpId::RsaPssId,
+            EVP_PKEY_EC => EvpId::EcId,
+            EVP_PKEY_DSA => EvpId::DsaId,
+            EVP_PKEY_DH => EvpId::DhId,
+            EVP_PKEY_X25519 => EvpId::X25519Id,
+            EVP_PKEY_X448 => EvpId::X448Id,
+            EVP_PKEY_ED25519 => EvpId::Ed25519Id,
+            EVP_PKEY_ED448 => EvpId::Ed448Id,
+            _ => unreachable!(),
         }
     }
 }
