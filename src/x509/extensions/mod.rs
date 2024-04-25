@@ -1,8 +1,10 @@
 mod basic_constraints;
+mod ext_key_usage;
 mod key_usage;
 
 pub use basic_constraints::*;
 pub use key_usage::*;
+pub use ext_key_usage::*;
 
 use super::X509Ext;
 use crate::ssl::*;

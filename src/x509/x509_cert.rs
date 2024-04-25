@@ -8,7 +8,10 @@ use crate::{
     ssl::*,
 };
 
-use super::{extensions::KeyUsage, X509NameRef};
+use super::{
+    extensions::{ExtendedKeyUsage, KeyUsage},
+    X509NameRef,
+};
 
 foreign_type! {
     pub unsafe type X509Cert: Sync + Send {
@@ -48,9 +51,11 @@ impl X509CertRef {
     }
 
     pub fn get_key_usage(&self) -> Option<KeyUsage> {
-        unsafe {
-            KeyUsage::from_raw(X509_get_key_usage(self.as_ptr()))
-        }
+        unsafe { KeyUsage::from_raw(X509_get_key_usage(self.as_ptr())) }
+    }
+
+    pub fn get_ext_key_usage(&self) -> Option<ExtendedKeyUsage> {
+        unsafe { ExtendedKeyUsage::from_raw(X509_get_extended_key_usage(self.as_ptr())) }
     }
 }
 
@@ -85,8 +90,8 @@ mod test {
         let not_before = x509.not_before();
         let not_after = x509.not_after();
         let pub_key = x509.pub_key();
-        let ku = x509.get_key_usage()
-            .map(|v| v.to_string());
+        let ku = x509.get_key_usage().map(|v| v.to_string());
+        let eku = x509.get_ext_key_usage().map(|v| v.to_string());
         println!("SERIAL: {serial}");
         println!("subject: {subject}");
         println!("issuer: {issuer}");
@@ -97,6 +102,7 @@ mod test {
             not_after.to_date_time().unwrap().to_rfc3339()
         );
         println!("pub_key: {pub_key}");
-        println!("Key Usage: {ku:?}", )
+        println!("Key Usage: {ku:?}");
+        println!("Ext Key Usage: {eku:?}");
     }
 }

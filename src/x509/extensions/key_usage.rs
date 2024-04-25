@@ -51,6 +51,16 @@ impl KeyUsage {
     }
 }
 
+impl From<&[KeyUsageValue]> for KeyUsage {
+    fn from(value: &[KeyUsageValue]) -> Self {
+        let mut ku = KeyUsage::default();
+        for val in value {
+          ku.0 |= *val as u32;
+        }
+        return ku;
+    }
+}
+
 impl ToExt for KeyUsage {
     fn to_ext(&self) -> crate::x509::X509Ext {
         todo!()
@@ -97,6 +107,6 @@ impl Display for KeyUsage {
             }
         }
 
-        write!(f, "{}", kus)
+        write!(f, "{kus}")
     }
 }
