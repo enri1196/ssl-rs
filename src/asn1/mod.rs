@@ -8,8 +8,9 @@ use crate::ssl::*;
 pub use asn1_integer::*;
 pub use asn1_time::*;
 use num_derive::FromPrimitive;
+use strum::AsRefStr;
 
-#[derive(Debug, Clone, Copy, FromPrimitive)]
+#[derive(Debug, Clone, Copy, FromPrimitive, AsRefStr)]
 #[repr(u32)]
 pub enum Asn1Type {
     Eoc = V_ASN1_EOC,

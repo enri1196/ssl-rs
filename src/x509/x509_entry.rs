@@ -31,6 +31,6 @@ pub enum X509Entries {
 
 impl Display for X509Entries {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{self:?}")
+        write!(f, "{self}")
     }
 }
