@@ -10,6 +10,9 @@ libc = "0.2.153"
 thiserror = "1.0.58"
 foreign-types = "0.5.0"
 chrono = "0.4.38"
+strum = { version = "0.26.2", features = ["derive"] }
+num = "0.4"
+num-derive = "0.4"
+num-traits = "0.2"
 
 ssl-sys = { path = "./ssl-sys" }
-strum = { version = "0.26.2", features = ["derive"] }

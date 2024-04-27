@@ -1,4 +1,5 @@
 use foreign_types::{foreign_type, ForeignType};
+use num::FromPrimitive;
 
 use crate::ssl::*;
 
@@ -22,6 +23,10 @@ impl Asn1String {
     }
 
     pub fn get_type(&self) -> Asn1Type {
-        todo!()
+        unsafe {
+            // this should not panic since the contained type should always be
+            // a valid asn1 type
+            Asn1Type::from_i32(ASN1_STRING_type(self.as_ptr())).unwrap_unchecked()
+        }
     }
 }

@@ -1,13 +1,15 @@
 mod asn1_integer;
 mod asn1_string;
 mod asn1_time;
-// mod general_name;
+mod general_name;
 
 use crate::ssl::*;
 
 pub use asn1_integer::*;
 pub use asn1_time::*;
+use num_derive::FromPrimitive;
 
+#[derive(Debug, Clone, Copy, FromPrimitive)]
 #[repr(u32)]
 pub enum Asn1Type {
     Eoc = V_ASN1_EOC,
