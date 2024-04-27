@@ -76,6 +76,7 @@ mod test {
         let bc = BasicConstraints::new(true, true, None);
         let bc_ext = bc.to_ext();
         println!("OID: {}", bc_ext.get_oid());
+        println!("DATA: {}", bc.to_string());
         assert_eq!("2.5.29.19", bc_ext.get_oid())
     }
 }

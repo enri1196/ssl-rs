@@ -143,8 +143,8 @@ mod test {
     pub fn key_usage_test() {
         let ku = ExtKeyUsage::from_raw(SslClient | CodeSign);
         let ku_ext = ku.unwrap().to_ext();
-        println!("{}", ku.unwrap().to_string());
-        println!("{}", ku_ext.get_oid());
+        println!("OID: {}", ku_ext.get_oid());
+        println!("DATA: {}", ku.unwrap().to_string());
         assert_eq!("2.5.29.37", ku_ext.get_oid());
     }
 }
