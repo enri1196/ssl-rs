@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, ops::BitOr};
 
 use foreign_types::ForeignType;
 
@@ -19,6 +19,14 @@ pub enum ExtKeyUsageValue {
     Anyeku = XKU_ANYEKU,
     #[default]
     Absent = UINT32_MAX,
+}
+
+impl BitOr<ExtKeyUsageValue> for ExtKeyUsageValue {
+    type Output = u32;
+
+    fn bitor(self, rhs: ExtKeyUsageValue) -> Self::Output {
+        self as u32 | rhs as u32
+    }
 }
 
 #[derive(Debug, Clone, Copy, Default)]
@@ -122,5 +130,21 @@ impl Display for ExtKeyUsage {
         }
 
         write!(f, "{ekus}")
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::x509::extensions::ToExt;
+
+    use super::{ExtKeyUsage, ExtKeyUsageValue::*};
+
+    #[test]
+    pub fn key_usage_test() {
+        let ku = ExtKeyUsage::from_raw(SslClient | CodeSign);
+        let ku_ext = ku.unwrap().to_ext();
+        println!("{}", ku.unwrap().to_string());
+        println!("{}", ku_ext.get_oid());
+        assert_eq!("2.5.29.37", ku_ext.get_oid());
     }
 }

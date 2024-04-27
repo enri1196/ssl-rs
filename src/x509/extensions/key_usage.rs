@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, ops::BitOr};
 
 use foreign_types::ForeignType;
 
@@ -20,6 +20,14 @@ pub enum KeyUsageValue {
     DecipherOnly = KU_DECIPHER_ONLY,
     #[default]
     Absent = UINT32_MAX,
+}
+
+impl BitOr<KeyUsageValue> for KeyUsageValue {
+    type Output = u32;
+
+    fn bitor(self, rhs: KeyUsageValue) -> Self::Output {
+        self as u32 | rhs as u32
+    }
 }
 
 #[derive(Debug, Clone, Copy, Default)]
@@ -127,5 +135,21 @@ impl Display for KeyUsage {
         }
 
         write!(f, "{kus}")
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::x509::extensions::ToExt;
+
+    use super::{KeyUsage, KeyUsageValue::*};
+
+    #[test]
+    pub fn key_usage_test() {
+        let ku = KeyUsage::from_raw(DigitalSignature | NonRepudiation);
+        let ku_ext = ku.unwrap().to_ext();
+        println!("{}", ku.unwrap().to_string());
+        println!("{}", ku_ext.get_oid());
+        assert_eq!("2.5.29.15", ku_ext.get_oid());
     }
 }
