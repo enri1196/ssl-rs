@@ -1,5 +1,5 @@
 mod asn1_integer;
-// mod asn1_string;
+mod asn1_string;
 mod asn1_time;
 // mod general_name;
 
