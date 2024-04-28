@@ -104,7 +104,7 @@ impl Display for EvpPkeyRef<Private> {
                 std::ptr::null_mut(),
             ))
             .unwrap();
-            write!(f, "{}", std::str::from_utf8(bio.get_data()).unwrap())
+            write!(f, "{}", std::str::from_utf8_unchecked(bio.get_data()))
         }
     }
 }
@@ -120,7 +120,7 @@ impl Display for EvpPkeyRef<Public> {
                 std::ptr::null_mut(),
             ))
             .unwrap();
-            write!(f, "{}", std::str::from_utf8(bio.get_data()).unwrap())
+            write!(f, "{}", std::str::from_utf8_unchecked(bio.get_data()))
         }
     }
 }
