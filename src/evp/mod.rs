@@ -7,6 +7,7 @@ use crate::{bio::SslBio, error::ErrorStack, ssl::*};
 
 pub use evp_props::*;
 use foreign_types::{foreign_type, ForeignType, ForeignTypeRef};
+use num::FromPrimitive;
 
 use self::evp_ctx::EvpCtx;
 
@@ -21,7 +22,7 @@ foreign_type! {
 
 impl<KT: KeyType> EvpPkeyRef<KT> {
     pub fn id(&self) -> EvpId {
-        unsafe { (EVP_PKEY_get_id(self.as_ptr()) as u32).into() }
+        unsafe { EvpId::from_u32(EVP_PKEY_get_id(self.as_ptr()) as u32).unwrap_unchecked() }
     }
 
     pub fn size(&self) -> i32 {
