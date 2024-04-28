@@ -18,7 +18,8 @@ impl TryFrom<&[u8]> for X509Req {
             let req_ptr = crate::check_ptr(d2i_X509_REQ(
                 std::ptr::null_mut(),
                 value.as_ptr() as *mut *const _,
-                value.len() as i64))?;
+                value.len() as i64,
+            ))?;
             Ok(Self::from_ptr(req_ptr))
         }
     }
