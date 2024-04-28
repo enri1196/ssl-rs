@@ -12,8 +12,8 @@ impl EvpCtx<Private, RsaKey> {
     pub fn generate(value: RsaKey) -> Result<EvpPkey<Private>, ErrorStack> {
         unsafe {
             let RsaKey(id, bits) = value;
-            let ctx = Self::from(id);
             let m_key = EvpPkey::<Private>::default();
+            let ctx = Self::from(id);
             crate::check_code(EVP_PKEY_keygen_init(ctx.as_ptr()))?;
             crate::check_code(EVP_PKEY_CTX_set_rsa_keygen_bits(ctx.as_ptr(), bits as i32))?;
             crate::check_code(EVP_PKEY_keygen(

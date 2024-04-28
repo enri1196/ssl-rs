@@ -12,8 +12,8 @@ impl EvpCtx<Private, DsaKey> {
     pub fn generate(value: DsaKey) -> Result<EvpPkey<Private>, ErrorStack> {
         unsafe {
             let DsaKey(id, bits) = value;
-            let ctx = Self::from(id);
             let m_key = EvpPkey::<Private>::default();
+            let ctx = Self::from(id);
             crate::check_code(EVP_PKEY_paramgen_init(ctx.as_ptr()))?;
             crate::check_code(EVP_PKEY_CTX_set_dsa_paramgen_bits(
                 ctx.as_ptr(),
