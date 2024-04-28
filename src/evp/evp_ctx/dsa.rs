@@ -8,19 +8,27 @@ use crate::{
 
 use super::{EvpCtx, KeyGen};
 
-impl KeyGen<Private, DsaKey> for EvpCtx<Private, DsaKey> {
-    fn generate(value: DsaKey) -> Result<EvpPkey<Private>, ErrorStack> {
+impl KeyGen<DsaKey> for EvpCtx<Private, DsaKey> {
+    fn init_key_gen(self) -> Self {
         unsafe {
-            let DsaKey(id, bits) = value;
+            EVP_PKEY_paramgen_init(self.as_ptr());
+            self
+        }
+    }
+
+    fn set_key_algorithm(self, alg: DsaKey) -> Self {
+        unsafe {
+            let DsaKey(_, bits) = alg;
+            EVP_PKEY_CTX_set_dsa_paramgen_bits(self.as_ptr(), bits as i32);
+            self
+        }
+    }
+
+    fn generate(self) -> Result<EvpPkey<Private>, ErrorStack> {
+        unsafe {
             let m_key = EvpPkey::<Private>::default();
-            let ctx = Self::from(id);
-            crate::check_code(EVP_PKEY_paramgen_init(ctx.as_ptr()))?;
-            crate::check_code(EVP_PKEY_CTX_set_dsa_paramgen_bits(
-                ctx.as_ptr(),
-                bits as i32,
-            ))?;
             crate::check_code(EVP_PKEY_paramgen(
-                ctx.as_ptr(),
+                self.as_ptr(),
                 m_key.as_ptr() as *mut *mut _,
             ))?;
             Ok(m_key)

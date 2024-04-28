@@ -8,19 +8,27 @@ use crate::{
 
 use super::{EvpCtx, KeyGen};
 
-impl KeyGen<Private, EcKey> for EvpCtx<Private, EcKey> {
-    fn generate(value: EcKey) -> Result<EvpPkey<Private>, ErrorStack> {
+impl KeyGen<EcKey> for EvpCtx<Private, EcKey> {
+    fn init_key_gen(self) -> Self {
         unsafe {
-            let EcKey(id, nid) = value;
+            EVP_PKEY_keygen_init(self.as_ptr());
+            self
+        }
+    }
+
+    fn set_key_algorithm(self, alg: EcKey) -> Self {
+        unsafe {
+            let EcKey(_, nid) = alg;
+            EVP_PKEY_CTX_set_ec_paramgen_curve_nid(self.as_ptr(), nid as i32);
+            self
+        }
+    }
+
+    fn generate(self) -> Result<EvpPkey<Private>, ErrorStack> {
+        unsafe {
             let m_key = EvpPkey::default();
-            let ctx = Self::from(id);
-            crate::check_code(EVP_PKEY_keygen_init(ctx.as_ptr()))?;
-            crate::check_code(EVP_PKEY_CTX_set_ec_paramgen_curve_nid(
-                ctx.as_ptr(),
-                nid as i32,
-            ))?;
             crate::check_code(EVP_PKEY_keygen(
-                ctx.as_ptr(),
+                self.as_ptr(),
                 &mut m_key.as_ptr() as *mut *mut _,
             ))?;
             Ok(m_key)

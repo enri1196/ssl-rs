@@ -56,28 +56,44 @@ impl<KT: KeyType> Default for EvpPkey<KT> {
 impl TryFrom<RsaKey> for EvpPkey<Private> {
     type Error = ErrorStack;
     fn try_from(value: RsaKey) -> Result<Self, Self::Error> {
-        EvpCtx::<Private, RsaKey>::generate(value)
+        let RsaKey(evp_id, _) = value;
+        EvpCtx::from(evp_id)
+            .init_key_gen()
+            .set_key_algorithm(value)
+            .generate()
     }
 }
 
 impl TryFrom<EcKey> for EvpPkey<Private> {
     type Error = ErrorStack;
     fn try_from(value: EcKey) -> Result<Self, Self::Error> {
-        EvpCtx::<Private, EcKey>::generate(value)
+        let EcKey(evp_id, _) = value;
+        EvpCtx::from(evp_id)
+            .init_key_gen()
+            .set_key_algorithm(value)
+            .generate()
     }
 }
 
 impl TryFrom<DsaKey> for EvpPkey<Private> {
     type Error = ErrorStack;
     fn try_from(value: DsaKey) -> Result<Self, Self::Error> {
-        EvpCtx::<Private, DsaKey>::generate(value)
+        let DsaKey(evp_id, _) = value;
+        EvpCtx::from(evp_id)
+            .init_key_gen()
+            .set_key_algorithm(value)
+            .generate()
     }
 }
 
 impl TryFrom<DhKey> for EvpPkey<Private> {
     type Error = ErrorStack;
     fn try_from(value: DhKey) -> Result<Self, Self::Error> {
-        EvpCtx::<Private, DhKey>::generate(value)
+        let DhKey(evp_id, _) = value;
+        EvpCtx::from(evp_id)
+            .init_key_gen()
+            .set_key_algorithm(value)
+            .generate()
     }
 }
 

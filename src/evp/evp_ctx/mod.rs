@@ -7,7 +7,7 @@ use foreign_types::{foreign_type, ForeignType};
 
 use crate::{error::ErrorStack, ssl::*};
 
-use super::{EvpId, EvpPkey, KeyAlgorithm, KeyType};
+use super::{EvpId, EvpPkey, KeyAlgorithm, KeyType, Private};
 
 foreign_type! {
     pub unsafe type EvpCtx<KT: KeyType, KA: KeyAlgorithm> {
@@ -30,6 +30,8 @@ impl<KT: KeyType, KA: KeyAlgorithm> From<EvpId> for EvpCtx<KT, KA> {
     }
 }
 
-pub trait KeyGen<KT: KeyType, KA: KeyAlgorithm> {
-    fn generate(value: KA) -> Result<EvpPkey<KT>, ErrorStack>;
+pub trait KeyGen<KA: KeyAlgorithm> {
+    fn init_key_gen(self) -> Self;
+    fn set_key_algorithm(self, alg: KA) -> Self;
+    fn generate(self) -> Result<EvpPkey<Private>, ErrorStack>;
 }
