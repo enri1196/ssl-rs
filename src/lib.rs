@@ -6,7 +6,9 @@ pub mod bio;
 pub mod bn;
 pub mod error;
 pub mod evp;
+mod ocsp;
 pub mod ossl_param;
+mod tsp;
 pub mod x509;
 
 use std::{
