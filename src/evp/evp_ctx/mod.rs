@@ -1,5 +1,6 @@
-mod dh;
-mod dsa;
+// TODO: Fix key generation for DSA and DH
+// mod dh;
+// mod dsa;
 mod ec;
 mod rsa;
 
