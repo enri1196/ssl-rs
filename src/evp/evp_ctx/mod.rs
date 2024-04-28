@@ -5,9 +5,9 @@ mod rsa;
 
 use foreign_types::{foreign_type, ForeignType};
 
-use crate::ssl::*;
+use crate::{error::ErrorStack, ssl::*};
 
-use super::{EvpId, KeyAlgorithm, KeyType};
+use super::{EvpId, EvpPkey, KeyAlgorithm, KeyType};
 
 foreign_type! {
     pub unsafe type EvpCtx<KT: KeyType, KA: KeyAlgorithm> {
@@ -28,4 +28,8 @@ impl<KT: KeyType, KA: KeyAlgorithm> From<EvpId> for EvpCtx<KT, KA> {
             ))
         }
     }
+}
+
+pub trait KeyGen<KT: KeyType, KA: KeyAlgorithm> {
+    fn generate(value: KA) -> Result<EvpPkey<KT>, ErrorStack>;
 }

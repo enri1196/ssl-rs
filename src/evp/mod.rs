@@ -9,7 +9,7 @@ pub use evp_props::*;
 use foreign_types::{foreign_type, ForeignType, ForeignTypeRef};
 use num::FromPrimitive;
 
-use self::evp_ctx::EvpCtx;
+use self::evp_ctx::{EvpCtx, KeyGen};
 
 foreign_type! {
     pub unsafe type EvpPkey<KT: KeyType> : Send + Sync {

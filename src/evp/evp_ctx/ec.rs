@@ -6,10 +6,10 @@ use crate::{
     ssl::*,
 };
 
-use super::EvpCtx;
+use super::{EvpCtx, KeyGen};
 
-impl EvpCtx<Private, EcKey> {
-    pub fn generate(value: EcKey) -> Result<EvpPkey<Private>, ErrorStack> {
+impl KeyGen<Private, EcKey> for EvpCtx<Private, EcKey> {
+    fn generate(value: EcKey) -> Result<EvpPkey<Private>, ErrorStack> {
         unsafe {
             let EcKey(id, nid) = value;
             let m_key = EvpPkey::default();
