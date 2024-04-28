@@ -21,23 +21,23 @@ impl EvpCtx<Private, DsaKey> {
             ))?;
             crate::check_code(EVP_PKEY_paramgen(
                 ctx.as_ptr(),
-                &mut m_key.as_ptr() as *mut *mut _,
+                m_key.as_ptr() as *mut *mut _,
             ))?;
             Ok(m_key)
         }
     }
 }
 
-// #[cfg(test)]
-// mod test {
-//     use crate::evp::{DsaKey, EvpPkey, Private};
+#[cfg(test)]
+mod test {
+    use crate::evp::{DsaKey, EvpPkey, Private};
 
-//     #[test]
-//     pub fn test_dsa() {
-//         let key = EvpPkey::<Private>::try_from(DsaKey::DSA_2048_BITS).unwrap();
-//         println!("{}", key.to_string());
-//         println!("{}", key.get_public().unwrap().to_string());
-//         assert_eq!(116, key.id().get_raw());
-//         assert_eq!(64, key.size());
-//     }
-// }
+    #[test]
+    pub fn test_dsa() {
+        let key = EvpPkey::<Private>::try_from(DsaKey::DSA_2048_BITS).unwrap();
+        // println!("{}", key.to_string());
+        // println!("{}", key.get_public().unwrap().to_string());
+        // assert_eq!(116, key.id().get_raw());
+        assert_eq!(64, key.size());
+    }
+}

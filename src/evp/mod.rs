@@ -74,6 +74,13 @@ impl TryFrom<DsaKey> for EvpPkey<Private> {
     }
 }
 
+impl TryFrom<DhKey> for EvpPkey<Private> {
+    type Error = ErrorStack;
+    fn try_from(value: DhKey) -> Result<Self, Self::Error> {
+        EvpCtx::<Private, DhKey>::generate(value)
+    }
+}
+
 impl TryFrom<EvpPkey<Private>> for EvpPkey<Public> {
     type Error = ErrorStack;
     fn try_from(value: EvpPkey<Private>) -> Result<Self, Self::Error> {
