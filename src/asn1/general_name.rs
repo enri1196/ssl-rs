@@ -27,7 +27,7 @@ foreign_type! {
 }
 
 impl GeneralName {
-    fn new(gen_type: GenNameType, asn1_type: Asn1Type, data: &str) -> Self {
+    fn _new(gen_type: GenNameType, asn1_type: Asn1Type, data: &str) -> Self {
         unsafe {
             let gn = Self::from_ptr(GENERAL_NAME_new());
             (*gn.as_ptr()).type_ = gen_type as i32;
