@@ -14,8 +14,8 @@ pub trait KeyAlgorithm {}
 
 impl KeyAlgorithm for RsaKey {}
 impl KeyAlgorithm for EcKey {}
-impl KeyAlgorithm for DsaKey {}
-impl KeyAlgorithm for DhKey {}
+// impl KeyAlgorithm for DsaKey {}
+// impl KeyAlgorithm for DhKey {}
 
 pub type Nid = u32;
 
