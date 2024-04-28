@@ -67,19 +67,19 @@ impl RsaKey {
     pub const RSA_PSS_4096_BITS: RsaKey = RsaKey(EvpId::RsaPssId, 4096);
 }
 
-#[derive(Clone, Copy, Debug)]
-pub struct DsaKey(pub(crate) EvpId, pub(crate) u32);
+// #[derive(Clone, Copy, Debug)]
+// pub struct DsaKey(pub(crate) EvpId, pub(crate) u32);
 
-impl DsaKey {
-    pub const DSA_1024_BITS: DsaKey = DsaKey(EvpId::DsaId, 1024);
-    pub const DSA_2048_BITS: DsaKey = DsaKey(EvpId::DsaId, 2048);
-    pub const DSA_4096_BITS: DsaKey = DsaKey(EvpId::DsaId, 4096);
-}
+// impl DsaKey {
+//     pub const DSA_1024_BITS: DsaKey = DsaKey(EvpId::DsaId, 1024);
+//     pub const DSA_2048_BITS: DsaKey = DsaKey(EvpId::DsaId, 2048);
+//     pub const DSA_4096_BITS: DsaKey = DsaKey(EvpId::DsaId, 4096);
+// }
 
-pub struct DhKey(pub(crate) EvpId, pub(crate) u32);
+// pub struct DhKey(pub(crate) EvpId, pub(crate) u32);
 
-impl DhKey {
-    pub const DH_1024_BITS: DhKey = DhKey(EvpId::DhId, 1024);
-    pub const DH_2048_BITS: DhKey = DhKey(EvpId::DhId, 2048);
-    pub const DH_4096_BITS: DhKey = DhKey(EvpId::DhId, 4096);
-}
+// impl DhKey {
+//     pub const DH_1024_BITS: DhKey = DhKey(EvpId::DhId, 1024);
+//     pub const DH_2048_BITS: DhKey = DhKey(EvpId::DhId, 2048);
+//     pub const DH_4096_BITS: DhKey = DhKey(EvpId::DhId, 4096);
+// }
