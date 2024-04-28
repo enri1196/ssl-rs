@@ -1,3 +1,4 @@
+#define OPENSSL_NO_DEPRECATED
 #include <openssl/aes.h>
 #include <openssl/asn1.h>
 #include <openssl/bio.h>
