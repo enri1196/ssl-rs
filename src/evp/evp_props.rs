@@ -1,3 +1,5 @@
+use num_derive::FromPrimitive;
+
 use crate::ssl::*;
 
 pub struct Private;
@@ -8,7 +10,13 @@ pub trait KeyType {}
 impl KeyType for Private {}
 impl KeyType for Public {}
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+pub trait KeyAlgorithm {}
+
+impl KeyAlgorithm for RsaKey {}
+impl KeyAlgorithm for EcKey {}
+impl KeyAlgorithm for DsaKey {}
+
+#[derive(Clone, Copy, Debug, PartialEq, FromPrimitive)]
 #[repr(u32)]
 pub enum EvpId {
     RsaId = EVP_PKEY_RSA,
@@ -25,23 +33,6 @@ pub enum EvpId {
 impl EvpId {
     pub fn get_raw(&self) -> u32 {
         *self as u32
-    }
-}
-
-impl From<u32> for EvpId {
-    fn from(value: u32) -> Self {
-        match value {
-            EVP_PKEY_RSA => EvpId::RsaId,
-            EVP_PKEY_RSA_PSS => EvpId::RsaPssId,
-            EVP_PKEY_EC => EvpId::EcId,
-            EVP_PKEY_DSA => EvpId::DsaId,
-            EVP_PKEY_DH => EvpId::DhId,
-            EVP_PKEY_X25519 => EvpId::X25519Id,
-            EVP_PKEY_X448 => EvpId::X448Id,
-            EVP_PKEY_ED25519 => EvpId::Ed25519Id,
-            EVP_PKEY_ED448 => EvpId::Ed448Id,
-            _ => unreachable!(),
-        }
     }
 }
 
@@ -81,9 +72,3 @@ impl DsaKey {
     pub const DSA_2048_BITS: DsaKey = DsaKey(EvpId::DsaId, 2048);
     pub const DSA_4096_BITS: DsaKey = DsaKey(EvpId::DsaId, 4096);
 }
-
-pub trait KeyAlgorithm {}
-
-impl KeyAlgorithm for RsaKey {}
-impl KeyAlgorithm for EcKey {}
-impl KeyAlgorithm for DsaKey {}
