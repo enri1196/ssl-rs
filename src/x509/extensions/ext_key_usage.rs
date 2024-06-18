@@ -1,4 +1,4 @@
-use std::{fmt::Display, ops::BitOr};
+use std::{fmt::Display, ops::{BitOr, BitOrAssign}};
 
 use foreign_types::ForeignType;
 
@@ -29,6 +29,20 @@ impl BitOr<ExtKeyUsageValue> for ExtKeyUsageValue {
     }
 }
 
+impl BitOr<ExtKeyUsageValue> for u32 {
+    type Output = u32;
+
+    fn bitor(self, rhs: ExtKeyUsageValue) -> Self::Output {
+        self as u32 | rhs as u32
+    }
+}
+
+impl BitOrAssign<ExtKeyUsageValue> for u32 {
+    fn bitor_assign(&mut self, rhs: ExtKeyUsageValue) {
+        *self |= rhs as u32
+    }
+}
+
 #[derive(Debug, Clone, Copy, Default)]
 pub struct ExtKeyUsage(u32);
 
@@ -36,17 +50,17 @@ impl ExtKeyUsage {
     pub fn from_raw(value: u32) -> Option<Self> {
         use ExtKeyUsageValue::*;
         // Define constants for valid key usage flags
-        const VALID_FLAGS: u32 = SslServer as u32
-            | SslClient as u32
-            | Smime as u32
-            | CodeSign as u32
-            | OcspSign as u32
-            | Timestamp as u32
-            | DVCS as u32
-            | Anyeku as u32;
+        let valid_flags: u32 = SslServer
+            | SslClient
+            | Smime
+            | CodeSign
+            | OcspSign
+            | Timestamp
+            | DVCS
+            | Anyeku;
 
         // Check if the value contains any invalid flags
-        if value & !VALID_FLAGS == 0 {
+        if value & !valid_flags == 0 {
             Some(Self(value))
         } else {
             None
@@ -54,7 +68,7 @@ impl ExtKeyUsage {
     }
 
     pub fn add(mut self, val: ExtKeyUsageValue) -> Self {
-        self.0 |= val as u32;
+        self.0 |= val;
         self
     }
 }
@@ -86,7 +100,7 @@ impl ToExt for ExtKeyUsage {
                 std::ptr::null_mut(),
                 ctx,
                 X509ExtNid::EXT_KEY_USAGE.nid(),
-                self.to_string().as_ptr(),
+                self.to_string().as_ptr() as *const i8,
             ))
         }
     }

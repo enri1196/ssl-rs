@@ -88,7 +88,7 @@ impl ToExt for KeyUsage {
                 std::ptr::null_mut(),
                 ctx,
                 X509ExtNid::KEY_USAGE.nid(),
-                self.to_string().as_ptr(),
+                self.to_string().as_ptr() as *const i8,
             ))
         }
     }

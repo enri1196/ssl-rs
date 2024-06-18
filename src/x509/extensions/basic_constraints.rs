@@ -59,7 +59,7 @@ impl ToExt for BasicConstraints {
                 std::ptr::null_mut(),
                 ctx,
                 X509ExtNid::BASIC_CONSTRAINTS.nid(),
-                self.to_string().as_ptr(),
+                self.to_string().as_ptr() as *const i8,
             ))
         }
     }

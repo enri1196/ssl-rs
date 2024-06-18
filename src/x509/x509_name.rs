@@ -55,7 +55,7 @@ impl X509NameBuilder {
         unsafe {
             X509_NAME_add_entry_by_txt(
                 self.0.as_ptr(),
-                key.as_ptr(),
+                key.as_ptr() as *const i8,
                 MBSTRING_ASC as i32,
                 value.as_ptr(),
                 -1,
@@ -70,7 +70,7 @@ impl X509NameBuilder {
         unsafe {
             X509_NAME_add_entry_by_txt(
                 self.0.as_ptr(),
-                key.as_ref().as_ptr(),
+                key.as_ref().as_ptr() as *const i8,
                 MBSTRING_ASC as i32,
                 value.as_ptr(),
                 -1,
