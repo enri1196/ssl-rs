@@ -45,6 +45,18 @@ impl EvpPkey<Private> {
             Ok(EvpPkey::<Public>::from_ptr(pub_key))
         }
     }
+
+    pub fn sign(&self, tbs: &[u8]) -> Result<Vec<u8>, ErrorStack> {
+        unsafe {
+            let ctx = EVP_PKEY_CTX_new_from_pkey(std::ptr::null_mut(), self.as_ptr(), std::ptr::null_mut());
+            crate::check_code(EVP_PKEY_sign_init(ctx))?;
+            let mut siglen = 0;
+            crate::check_code(EVP_PKEY_sign(ctx, std::ptr::null_mut(), &mut siglen, tbs.as_ptr(), tbs.len()))?;
+            let mut sig = Vec::with_capacity(siglen);
+            crate::check_code(EVP_PKEY_sign(ctx, sig.as_mut_ptr(), &mut siglen, tbs.as_ptr(), tbs.len()))?;
+            Ok(sig)
+        }
+    }
 }
 
 impl<KT: KeyType> Default for EvpPkey<KT> {
