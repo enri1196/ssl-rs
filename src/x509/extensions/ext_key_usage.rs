@@ -1,4 +1,7 @@
-use std::{fmt::Display, ops::{BitOr, BitOrAssign}};
+use std::{
+    fmt::Display,
+    ops::{BitOr, BitOrAssign},
+};
 
 use foreign_types::ForeignType;
 
@@ -49,17 +52,9 @@ pub struct ExtKeyUsage(u32);
 impl ExtKeyUsage {
     pub fn from_raw(value: u32) -> Option<Self> {
         use ExtKeyUsageValue::*;
-        // Define constants for valid key usage flags
-        let valid_flags: u32 = SslServer
-            | SslClient
-            | Smime
-            | CodeSign
-            | OcspSign
-            | Timestamp
-            | DVCS
-            | Anyeku;
+        let valid_flags: u32 =
+            SslServer | SslClient | Smime | CodeSign | OcspSign | Timestamp | DVCS | Anyeku;
 
-        // Check if the value contains any invalid flags
         if value & !valid_flags == 0 {
             Some(Self(value))
         } else {
