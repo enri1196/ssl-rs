@@ -1,6 +1,6 @@
 // TODO: Fix key generation for DSA and DH
 // mod dh;
-// mod dsa;
+mod dsa;
 mod ec;
 mod rsa;
 
@@ -31,8 +31,18 @@ impl<KT: KeyType, KA: KeyAlgorithm> From<EvpId> for EvpCtx<KT, KA> {
     }
 }
 
+impl<KT: KeyType, KA: KeyAlgorithm> From<EvpPkey<Private>> for EvpCtx<KT, KA> {
+    fn from(value: EvpPkey<Private>) -> Self {
+        unsafe {
+            Self::from_ptr(EVP_PKEY_CTX_new_from_pkey(
+                std::ptr::null_mut(),
+                value.as_ptr(),
+                std::ptr::null_mut()))
+        }
+    }
+}
+
+
 pub trait KeyGen<KA: KeyAlgorithm> {
-    fn init_key_gen(self) -> Self;
-    fn set_key_algorithm(self, alg: KA) -> Self;
-    fn generate(self) -> Result<EvpPkey<Private>, ErrorStack>;
+    fn generate(self, alg: KA) -> Result<EvpPkey<Private>, ErrorStack>;
 }

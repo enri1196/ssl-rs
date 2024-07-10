@@ -14,7 +14,7 @@ pub trait KeyAlgorithm {}
 
 impl KeyAlgorithm for RsaKey {}
 impl KeyAlgorithm for EcKey {}
-// impl KeyAlgorithm for DsaKey {}
+impl KeyAlgorithm for DsaKey {}
 // impl KeyAlgorithm for DhKey {}
 
 pub type Nid = u32;
@@ -67,14 +67,14 @@ impl RsaKey {
     pub const RSA_PSS_4096_BITS: RsaKey = RsaKey(EvpId::RsaPssId, 4096);
 }
 
-// #[derive(Clone, Copy, Debug)]
-// pub struct DsaKey(pub(crate) EvpId, pub(crate) u32);
+#[derive(Clone, Copy, Debug)]
+pub struct DsaKey(pub(crate) EvpId, pub(crate) u32);
 
-// impl DsaKey {
-//     pub const DSA_1024_BITS: DsaKey = DsaKey(EvpId::DsaId, 1024);
-//     pub const DSA_2048_BITS: DsaKey = DsaKey(EvpId::DsaId, 2048);
-//     pub const DSA_4096_BITS: DsaKey = DsaKey(EvpId::DsaId, 4096);
-// }
+impl DsaKey {
+    pub const DSA_1024_BITS: DsaKey = DsaKey(EvpId::DsaId, 1024);
+    pub const DSA_2048_BITS: DsaKey = DsaKey(EvpId::DsaId, 2048);
+    pub const DSA_4096_BITS: DsaKey = DsaKey(EvpId::DsaId, 4096);
+}
 
 // pub struct DhKey(pub(crate) EvpId, pub(crate) u32);
 
