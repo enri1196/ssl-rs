@@ -1,9 +1,7 @@
-// TODO: Fix key generation for DSA and DH
-// mod dh;
-mod dsa;
 mod ec;
 mod rsa;
 
+use std::ffi::CStr;
 use foreign_types::{foreign_type, ForeignType};
 
 use crate::{error::ErrorStack, ssl::*};
@@ -31,13 +29,40 @@ impl<KT: KeyType, KA: KeyAlgorithm> From<EvpId> for EvpCtx<KT, KA> {
     }
 }
 
+impl<KT: KeyType, KA: KeyAlgorithm> From<&str> for EvpCtx<KT, KA> {
+    fn from(value: &str) -> Self {
+        unsafe {
+            let ctx = EVP_PKEY_CTX_new_from_name(
+                std::ptr::null_mut(),
+                value.as_ptr() as *const i8,
+                std::ptr::null_mut(),
+            );
+            if ctx.is_null() {
+                // Error handling: retrieve and print the OpenSSL error
+                let err_code = ERR_get_error();
+                let err_msg = CStr::from_ptr(ERR_error_string(err_code, std::ptr::null_mut()));
+                panic!("EVP_PKEY_CTX_new_from_name failed: {}", err_msg.to_string_lossy());
+            }
+            Self::from_ptr(ctx)
+        }
+    }
+}
+
 impl<KT: KeyType, KA: KeyAlgorithm> From<EvpPkey<Private>> for EvpCtx<KT, KA> {
     fn from(value: EvpPkey<Private>) -> Self {
         unsafe {
-            Self::from_ptr(EVP_PKEY_CTX_new_from_pkey(
+            let ctx = EVP_PKEY_CTX_new_from_pkey(
                 std::ptr::null_mut(),
                 value.as_ptr(),
-                std::ptr::null_mut()))
+                std::ptr::null_mut(),
+            );
+            if ctx.is_null() {
+                // Error handling: retrieve and print the OpenSSL error
+                let err_code = ERR_get_error();
+                let err_msg = CStr::from_ptr(ERR_error_string(err_code, std::ptr::null_mut()));
+                panic!("EVP_PKEY_CTX_new_from_pkey failed: {}", err_msg.to_string_lossy());
+            }
+            Self::from_ptr(ctx)
         }
     }
 }

@@ -83,28 +83,6 @@ impl TryFrom<EcKey> for EvpPkey<Private> {
     }
 }
 
-// TODO: Fix key generation not working
-impl TryFrom<DsaKey> for EvpPkey<Private> {
-    type Error = ErrorStack;
-    fn try_from(value: DsaKey) -> Result<Self, Self::Error> {
-        let DsaKey(evp_id, _) = value;
-        EvpCtx::from(evp_id)
-            .generate(value)
-    }
-}
-
-// TODO: Fix key generation not working
-// impl TryFrom<DhKey> for EvpPkey<Private> {
-//     type Error = ErrorStack;
-//     fn try_from(value: DhKey) -> Result<Self, Self::Error> {
-//         let DhKey(evp_id, _) = value;
-//         EvpCtx::from(evp_id)
-//             .init_key_gen()
-//             .set_key_algorithm(value)
-//             .generate()
-//     }
-// }
-
 impl TryFrom<EvpPkey<Private>> for EvpPkey<Public> {
     type Error = ErrorStack;
     fn try_from(value: EvpPkey<Private>) -> Result<Self, Self::Error> {
