@@ -23,8 +23,6 @@ pub enum EvpId {
     RsaId = EVP_PKEY_RSA,
     RsaPssId = EVP_PKEY_RSA_PSS,
     EcId = EVP_PKEY_EC,
-    DsaId = EVP_PKEY_DSA,
-    DhId = EVP_PKEY_DH,
     X25519Id = EVP_PKEY_X25519,
     X448Id = EVP_PKEY_X448,
     Ed25519Id = EVP_PKEY_ED25519,
