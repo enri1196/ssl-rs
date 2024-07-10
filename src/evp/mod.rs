@@ -48,12 +48,28 @@ impl EvpPkey<Private> {
 
     pub fn sign(&self, tbs: &[u8]) -> Result<Vec<u8>, ErrorStack> {
         unsafe {
-            let ctx = EVP_PKEY_CTX_new_from_pkey(std::ptr::null_mut(), self.as_ptr(), std::ptr::null_mut());
+            let ctx = EVP_PKEY_CTX_new_from_pkey(
+                std::ptr::null_mut(),
+                self.as_ptr(),
+                std::ptr::null_mut(),
+            );
             crate::check_code(EVP_PKEY_sign_init(ctx))?;
             let mut siglen = 0;
-            crate::check_code(EVP_PKEY_sign(ctx, std::ptr::null_mut(), &mut siglen, tbs.as_ptr(), tbs.len()))?;
+            crate::check_code(EVP_PKEY_sign(
+                ctx,
+                std::ptr::null_mut(),
+                &mut siglen,
+                tbs.as_ptr(),
+                tbs.len(),
+            ))?;
             let mut sig = Vec::with_capacity(siglen);
-            crate::check_code(EVP_PKEY_sign(ctx, sig.as_mut_ptr(), &mut siglen, tbs.as_ptr(), tbs.len()))?;
+            crate::check_code(EVP_PKEY_sign(
+                ctx,
+                sig.as_mut_ptr(),
+                &mut siglen,
+                tbs.as_ptr(),
+                tbs.len(),
+            ))?;
             Ok(sig)
         }
     }
@@ -69,8 +85,7 @@ impl TryFrom<RsaKey> for EvpPkey<Private> {
     type Error = ErrorStack;
     fn try_from(value: RsaKey) -> Result<Self, Self::Error> {
         let RsaKey(evp_id, _) = value;
-        EvpCtx::from(evp_id)
-            .generate(value)
+        EvpCtx::from(evp_id).generate(value)
     }
 }
 
@@ -78,8 +93,7 @@ impl TryFrom<EcKey> for EvpPkey<Private> {
     type Error = ErrorStack;
     fn try_from(value: EcKey) -> Result<Self, Self::Error> {
         let EcKey(evp_id, _) = value;
-        EvpCtx::from(evp_id)
-            .generate(value)
+        EvpCtx::from(evp_id).generate(value)
     }
 }
 

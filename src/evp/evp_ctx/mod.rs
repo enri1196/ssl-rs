@@ -1,8 +1,8 @@
 mod ec;
 mod rsa;
 
-use std::ffi::CStr;
 use foreign_types::{foreign_type, ForeignType};
+use std::ffi::CStr;
 
 use crate::{error::ErrorStack, ssl::*};
 
@@ -41,7 +41,10 @@ impl<KT: KeyType, KA: KeyAlgorithm> From<&str> for EvpCtx<KT, KA> {
                 // Error handling: retrieve and print the OpenSSL error
                 let err_code = ERR_get_error();
                 let err_msg = CStr::from_ptr(ERR_error_string(err_code, std::ptr::null_mut()));
-                panic!("EVP_PKEY_CTX_new_from_name failed: {}", err_msg.to_string_lossy());
+                panic!(
+                    "EVP_PKEY_CTX_new_from_name failed: {}",
+                    err_msg.to_string_lossy()
+                );
             }
             Self::from_ptr(ctx)
         }
@@ -60,13 +63,15 @@ impl<KT: KeyType, KA: KeyAlgorithm> From<EvpPkey<Private>> for EvpCtx<KT, KA> {
                 // Error handling: retrieve and print the OpenSSL error
                 let err_code = ERR_get_error();
                 let err_msg = CStr::from_ptr(ERR_error_string(err_code, std::ptr::null_mut()));
-                panic!("EVP_PKEY_CTX_new_from_pkey failed: {}", err_msg.to_string_lossy());
+                panic!(
+                    "EVP_PKEY_CTX_new_from_pkey failed: {}",
+                    err_msg.to_string_lossy()
+                );
             }
             Self::from_ptr(ctx)
         }
     }
 }
-
 
 pub trait KeyGen<KA: KeyAlgorithm> {
     fn generate(self, alg: KA) -> Result<EvpPkey<Private>, ErrorStack>;
