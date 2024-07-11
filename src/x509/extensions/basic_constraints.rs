@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{ffi::c_char, fmt::Display};
 
 use foreign_types::ForeignType;
 
@@ -59,7 +59,7 @@ impl ToExt for BasicConstraints {
                 std::ptr::null_mut(),
                 ctx,
                 X509ExtNid::BASIC_CONSTRAINTS.nid(),
-                self.to_string().as_ptr() as *const i8,
+                self.to_string().as_ptr() as *const c_char,
             ))
         }
     }

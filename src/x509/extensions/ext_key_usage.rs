@@ -1,6 +1,5 @@
 use std::{
-    fmt::Display,
-    ops::{BitOr, BitOrAssign},
+    ffi::c_char, fmt::Display, ops::{BitOr, BitOrAssign}
 };
 
 use foreign_types::ForeignType;
@@ -95,7 +94,7 @@ impl ToExt for ExtKeyUsage {
                 std::ptr::null_mut(),
                 ctx,
                 X509ExtNid::EXT_KEY_USAGE.nid(),
-                self.to_string().as_ptr() as *const i8,
+                self.to_string().as_ptr() as *const c_char,
             ))
         }
     }

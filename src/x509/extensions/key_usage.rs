@@ -1,4 +1,4 @@
-use std::{fmt::Display, ops::BitOr};
+use std::{ffi::c_char, fmt::Display, ops::BitOr};
 
 use foreign_types::ForeignType;
 
@@ -88,7 +88,7 @@ impl ToExt for KeyUsage {
                 std::ptr::null_mut(),
                 ctx,
                 X509ExtNid::KEY_USAGE.nid(),
-                self.to_string().as_ptr() as *const i8,
+                self.to_string().as_ptr() as *const c_char,
             ))
         }
     }

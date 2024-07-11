@@ -1,3 +1,5 @@
+use std::ffi::c_char;
+
 use foreign_types::{foreign_type, ForeignTypeRef};
 
 use crate::ssl::*;
@@ -15,7 +17,7 @@ impl X509ExtRef {
         unsafe {
             let oid = X509_EXTENSION_get_object(self.as_ptr());
             let mut buf = vec![0u8; 50];
-            let len = OBJ_obj2txt(buf.as_mut_ptr() as *mut i8, 50, oid, 1);
+            let len = OBJ_obj2txt(buf.as_mut_ptr() as *mut c_char, 50, oid, 1);
             buf.resize(len as usize, 0);
             String::from_utf8_unchecked(buf)
         }

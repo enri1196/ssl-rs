@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{ffi::c_char, fmt::Display};
 
 use foreign_types::{foreign_type, ForeignType, ForeignTypeRef};
 
@@ -55,7 +55,7 @@ impl X509NameBuilder {
         unsafe {
             X509_NAME_add_entry_by_txt(
                 self.0.as_ptr(),
-                key.as_ptr() as *const i8,
+                key.as_ptr() as *const c_char,
                 MBSTRING_ASC as i32,
                 value.as_ptr(),
                 -1,
@@ -70,7 +70,7 @@ impl X509NameBuilder {
         unsafe {
             X509_NAME_add_entry_by_txt(
                 self.0.as_ptr(),
-                key.as_ref().as_ptr() as *const i8,
+                key.as_ref().as_ptr() as *const c_char,
                 MBSTRING_ASC as i32,
                 value.as_ptr(),
                 -1,
