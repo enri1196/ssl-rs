@@ -12,7 +12,7 @@ foreign_type! {
 
 impl SslBio {
     pub fn memory() -> Self {
-        unsafe { Self::from_ptr(BIO_new(BIO_s_mem())) }
+        Self::default()
     }
 
     pub fn get_data(&self) -> &[u8] {
@@ -22,8 +22,14 @@ impl SslBio {
         unsafe {
             let mut ptr = std::ptr::null_mut();
             let len = get_mem_data(self.as_ptr(), &mut ptr);
-            std::slice::from_raw_parts(ptr as *const _ as *const _, len as usize)
+            std::slice::from_raw_parts(ptr as *const _, len as usize)
         }
+    }
+}
+
+impl Default for SslBio {
+    fn default() -> Self {
+        unsafe { Self::from_ptr(BIO_new(BIO_s_mem())) }
     }
 }
 
