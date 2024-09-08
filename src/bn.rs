@@ -1,6 +1,6 @@
 use foreign_types::{foreign_type, ForeignType, ForeignTypeRef};
 
-use std::{ffi::CString, fmt::Display, ptr::NonNull};
+use std::{ffi::CString, fmt::Display};
 
 use crate::{asn1::Asn1IntegerRef, error::ErrorStack, ssl::*};
 
@@ -14,11 +14,11 @@ foreign_type! {
 
 impl BigNum {
     pub fn new() -> Self {
-        unsafe { Self(NonNull::new_unchecked(BN_new())) }
+        unsafe { Self::from_ptr(BN_new()) }
     }
 
     pub fn secure_new() -> Self {
-        unsafe { Self(NonNull::new_unchecked(BN_secure_new())) }
+        unsafe { Self::from_ptr(BN_secure_new()) }
     }
 }
 
