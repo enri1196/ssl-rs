@@ -15,7 +15,6 @@
 #include <openssl/err.h>
 #include <openssl/ec.h>
 #include <openssl/ecdsa.h>
-#include <openssl/engine.h>
 #include <openssl/evp.h>
 #include <openssl/hmac.h>
 #include <openssl/kdf.h>

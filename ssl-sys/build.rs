@@ -1,6 +1,7 @@
 use std::{env, path::PathBuf};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
+    println!("cargo:rerun-if-changed=src/wrapped_ssl.h");
     println!("cargo:rustc-link-lib=dylib=crypto");
     println!("cargo:rustc-link-lib=dylib=ssl");
 
