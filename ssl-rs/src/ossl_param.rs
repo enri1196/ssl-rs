@@ -1,4 +1,4 @@
-use std::os::raw::c_char;
+use std::{ffi::CString, os::raw::c_char};
 
 use foreign_types::{foreign_type, ForeignType};
 
@@ -26,16 +26,20 @@ impl OsslParamBld {
 
     pub fn push_bn(self, key: &str, bn: BigNum) -> Self {
         unsafe {
-            let key = key.as_ptr() as *mut c_char;
-            OSSL_PARAM_BLD_push_BN(self.as_ptr(), key, bn.as_ptr());
+            let key = CString::new(key).unwrap();
+            OSSL_PARAM_BLD_push_BN(self.as_ptr(), key.as_ptr(), bn.as_ptr());
             self
         }
     }
 
     pub fn push_u32(self, key: &str, value: u32) -> Self {
         unsafe {
-            let key = key.as_ptr() as *const c_char;
-            OSSL_PARAM_BLD_push_uint32(self.as_ptr(), key, value);
+            let key = CString::new(key).unwrap();
+            OSSL_PARAM_BLD_push_uint32(
+                self.as_ptr(),
+                key.as_ptr() as *const c_char,
+                value
+            );
             self
         }
     }

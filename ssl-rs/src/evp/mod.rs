@@ -160,11 +160,24 @@ impl Display for EvpPkeyRef<Public> {
 
 #[cfg(test)]
 mod test {
-    use crate::evp::{EvpPkey, Private, RsaKey, EcKey};
+    use crate::{
+        evp::{EcKey, EvpPkey, Private, RsaKey, RsaParams},
+        ossl_param::OsslParamBld,
+    };
 
     #[test]
     pub fn test_rsa() {
         let key = EvpPkey::<Private>::try_from(RsaKey::RSA_2048_BITS).unwrap();
+        println!("{}", key.to_string());
+        println!("{}", key.get_public().unwrap().to_string());
+        assert_eq!(6, key.id().get_raw());
+        assert_eq!(256, key.size());
+    }
+
+    #[test]
+    pub fn test_rsa_params() {
+        let params = OsslParamBld::new().push_u32("bits", 2048).build();
+        let key = EvpPkey::<Private>::try_from(RsaParams::new_rsa(params)).unwrap();
         println!("{}", key.to_string());
         println!("{}", key.get_public().unwrap().to_string());
         assert_eq!(6, key.id().get_raw());

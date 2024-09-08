@@ -1,18 +1,8 @@
-[package]
-name = "ssl-rs"
-version = "0.1.0"
-edition = "2021"
+[workspace]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+resolver = "2"
 
-[dependencies]
-libc = "0.2.158"
-thiserror = "1.0.63"
-foreign-types = "0.5.0"
-chrono = "0.4.38"
-strum = { version = "0.26.3", features = ["derive"] }
-num = "0.4.3"
-num-derive = "0.4.2"
-num-traits = "0.2.19"
-
-ssl-sys = { path = "./ssl-sys" }
+members = [
+    "ssl-rs",
+    "ssl-sys"
+]
