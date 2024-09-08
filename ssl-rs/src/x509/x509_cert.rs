@@ -82,7 +82,7 @@ mod test {
 
     #[test]
     pub fn test_cert() {
-        let cert = include_bytes!("../../google.cer");
+        let cert = include_bytes!("../../../google.cer");
         let x509 = X509Cert::try_from(cert.as_ref()).unwrap();
         let serial = x509.serial();
         let subject = x509.subject();
