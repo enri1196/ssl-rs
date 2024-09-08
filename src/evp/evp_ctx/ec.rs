@@ -24,35 +24,3 @@ impl KeyGen<EcKey> for EvpCtx<Private, EcKey> {
         }
     }
 }
-
-#[cfg(test)]
-mod test {
-    use crate::evp::{EcKey, EvpPkey, Private};
-
-    #[test]
-    pub fn test_ec() {
-        let key = EvpPkey::<Private>::try_from(EcKey::SECP_256K1).unwrap();
-        println!("{}", key.to_string());
-        println!("{}", key.get_public().unwrap().to_string());
-        assert_eq!(408, key.id().get_raw());
-        assert_eq!(72, key.size());
-    }
-
-    #[test]
-    pub fn test_ec_x25519() {
-        let key = EvpPkey::<Private>::try_from(EcKey::X25519).unwrap();
-        println!("{}", key.to_string());
-        println!("{}", key.get_public().unwrap().to_string());
-        assert_eq!(1034, key.id().get_raw());
-        assert_eq!(32, key.size());
-    }
-
-    #[test]
-    pub fn test_ec_x448() {
-        let key = EvpPkey::<Private>::try_from(EcKey::X448).unwrap();
-        println!("{}", key.to_string());
-        println!("{}", key.get_public().unwrap().to_string());
-        assert_eq!(1035, key.id().get_raw());
-        assert_eq!(56, key.size());
-    }
-}

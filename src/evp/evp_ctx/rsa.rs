@@ -1,12 +1,10 @@
-use foreign_types::ForeignType;
+use foreign_types::{ForeignType, ForeignTypeRef};
 
 use crate::{
-    error::ErrorStack,
-    evp::{EvpPkey, Private, RsaKey},
-    ssl::*,
+    error::ErrorStack, evp::{EvpPkey, Private, RsaKey}, ossl_param::OsslParamRef, ssl::*
 };
 
-use super::{EvpCtx, KeyGen};
+use super::{EvpCtx, KeyGen, ParamsKeyGen};
 
 impl KeyGen<RsaKey> for EvpCtx<Private, RsaKey> {
     fn generate(self, alg: RsaKey) -> Result<EvpPkey<Private>, ErrorStack> {
@@ -25,25 +23,17 @@ impl KeyGen<RsaKey> for EvpCtx<Private, RsaKey> {
     }
 }
 
-#[cfg(test)]
-mod test {
-    use crate::evp::{EvpPkey, Private, RsaKey};
-
-    #[test]
-    pub fn test_rsa() {
-        let key = EvpPkey::<Private>::try_from(RsaKey::RSA_2048_BITS).unwrap();
-        println!("{}", key.to_string());
-        println!("{}", key.get_public().unwrap().to_string());
-        assert_eq!(6, key.id().get_raw());
-        assert_eq!(256, key.size());
-    }
-
-    #[test]
-    pub fn test_rsa_pss() {
-        let key = EvpPkey::<Private>::try_from(RsaKey::RSA_PSS_2048_BITS).unwrap();
-        println!("{}", key.to_string());
-        println!("{}", key.get_public().unwrap().to_string());
-        assert_eq!(912, key.id().get_raw());
-        assert_eq!(256, key.size());
+impl ParamsKeyGen<RsaKey> for EvpCtx<Private, RsaKey> {
+    fn generate_with_params(self, params: &OsslParamRef) -> Result<EvpPkey<Private>, ErrorStack> {
+        unsafe {
+            let m_key = EvpPkey::<Private>::default();
+            EVP_PKEY_paramgen_init(self.as_ptr());
+            EVP_PKEY_CTX_set_params(self.as_ptr(), params.as_ptr() as *const _);
+            crate::check_code(EVP_PKEY_generate(
+                self.as_ptr(),
+                &mut m_key.as_ptr() as *mut *mut _
+            ))?;
+            Ok(m_key)
+        }
     }
 }

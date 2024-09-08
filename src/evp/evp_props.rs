@@ -1,6 +1,6 @@
 use num_derive::FromPrimitive;
 
-use crate::ssl::*;
+use crate::{ossl_param::OsslParam, ssl::*};
 
 pub struct Private;
 pub struct Public;
@@ -61,4 +61,26 @@ impl RsaKey {
     pub const RSA_PSS_1024_BITS: RsaKey = RsaKey(EvpId::RsaPssId, 1024);
     pub const RSA_PSS_2048_BITS: RsaKey = RsaKey(EvpId::RsaPssId, 2048);
     pub const RSA_PSS_4096_BITS: RsaKey = RsaKey(EvpId::RsaPssId, 4096);
+}
+
+#[derive(Clone)]
+pub struct RsaParams(pub(crate) EvpId, pub(crate) OsslParam);
+
+impl RsaParams {
+    pub fn new_rsa(params: OsslParam) -> Self {
+        Self(EvpId::RsaId, params)
+    }
+
+    pub fn new_rsa_pss(params: OsslParam) -> Self {
+        Self(EvpId::RsaPssId, params)
+    }
+}
+
+#[derive(Clone)]
+pub struct EcParams(pub(crate) EvpId, pub(crate) OsslParam);
+
+impl EcParams {
+    pub fn new_ec(params: OsslParam) -> Self {
+        Self(EvpId::EcId, params)
+    }
 }

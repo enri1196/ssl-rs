@@ -4,7 +4,7 @@ mod rsa;
 use foreign_types::{foreign_type, ForeignType};
 use std::ffi::c_char;
 
-use crate::{error::ErrorStack, ssl::*};
+use crate::{error::ErrorStack, ossl_param::OsslParamRef, ssl::*};
 
 use super::{EvpId, EvpPkey, KeyAlgorithm, KeyType, Private};
 
@@ -56,4 +56,8 @@ impl<KT: KeyType, KA: KeyAlgorithm> From<EvpPkey<Private>> for EvpCtx<KT, KA> {
 
 pub trait KeyGen<KA: KeyAlgorithm> {
     fn generate(self, alg: KA) -> Result<EvpPkey<Private>, ErrorStack>;
+}
+
+pub trait ParamsKeyGen<KA: KeyAlgorithm> {
+    fn generate_with_params(self, params: &OsslParamRef) -> Result<EvpPkey<Private>, ErrorStack>;
 }

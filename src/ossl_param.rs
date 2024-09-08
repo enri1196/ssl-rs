@@ -8,6 +8,7 @@ foreign_type! {
     pub unsafe type OsslParam: Sync + Send {
         type CType = OSSL_PARAM;
         fn drop = OSSL_PARAM_free;
+        fn clone = OSSL_PARAM_dup;
     }
 }
 
@@ -39,7 +40,7 @@ impl OsslParamBld {
         }
     }
 
-    pub fn to_ossl_param(self) -> OsslParam {
+    pub fn build(self) -> OsslParam {
         unsafe { OsslParam::from_ptr(OSSL_PARAM_BLD_to_param(self.as_ptr())) }
     }
 }
