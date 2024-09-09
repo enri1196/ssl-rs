@@ -44,7 +44,6 @@ fn check_cptr<T>(r: *const T) -> Result<*const T, error::ErrorStack> {
     }
 }
 
-#[allow(unused)]
 #[inline]
 fn check_code(r: c_int) -> Result<c_int, error::ErrorStack> {
     if r <= 0 {

@@ -1,5 +1,7 @@
 use std::{
-    ffi::c_char, fmt::Display, ops::{BitOr, BitOrAssign}
+    ffi::c_char,
+    fmt::Display,
+    ops::{BitOr, BitOrAssign},
 };
 
 use foreign_types::ForeignType;

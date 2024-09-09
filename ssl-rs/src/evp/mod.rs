@@ -86,7 +86,7 @@ impl TryFrom<RsaKey> for EvpPkey<Private> {
     type Error = ErrorStack;
     fn try_from(value: RsaKey) -> Result<Self, Self::Error> {
         let RsaKey(evp_id, _) = value;
-        EvpCtx::from(evp_id).generate(value)
+        EvpCtx::try_from(evp_id)?.generate(value)
     }
 }
 
@@ -94,7 +94,7 @@ impl TryFrom<RsaParams> for EvpPkey<Private> {
     type Error = ErrorStack;
     fn try_from(value: RsaParams) -> Result<Self, Self::Error> {
         let RsaParams(evp_id, params) = value;
-        EvpCtx::from(evp_id).generate_with_params(&params)
+        EvpCtx::<_, RsaKey>::try_from(evp_id)?.generate_with_params(&params)
     }
 }
 
@@ -102,7 +102,7 @@ impl TryFrom<EcKey> for EvpPkey<Private> {
     type Error = ErrorStack;
     fn try_from(value: EcKey) -> Result<Self, Self::Error> {
         let EcKey(evp_id, _) = value;
-        EvpCtx::from(evp_id).generate(value)
+        EvpCtx::try_from(evp_id)?.generate(value)
     }
 }
 
@@ -110,7 +110,7 @@ impl TryFrom<EcParams> for EvpPkey<Private> {
     type Error = ErrorStack;
     fn try_from(value: EcParams) -> Result<Self, Self::Error> {
         let EcParams(evp_id, params) = value;
-        EvpCtx::from(evp_id).generate_with_params(&params)
+        EvpCtx::<_, EcKey>::try_from(evp_id)?.generate_with_params(&params)
     }
 }
 
@@ -177,7 +177,8 @@ mod test {
     #[test]
     pub fn test_rsa_params() {
         let params = OsslParamBld::new().push_u32("bits", 2048).build();
-        let key = EvpPkey::<Private>::try_from(RsaParams::new_rsa(params)).unwrap();
+        let rsa_params = RsaParams::new_rsa(params);
+        let key = EvpPkey::<Private>::try_from(rsa_params).unwrap();
         println!("{}", key.to_string());
         println!("{}", key.get_public().unwrap().to_string());
         assert_eq!(6, key.id().get_raw());

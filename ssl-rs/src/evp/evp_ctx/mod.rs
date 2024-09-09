@@ -19,37 +19,46 @@ foreign_type! {
 
 impl<KT: KeyType, KA: KeyAlgorithm> EvpCtx<KT, KA> {}
 
-impl<KT: KeyType, KA: KeyAlgorithm> From<EvpId> for EvpCtx<KT, KA> {
-    fn from(value: EvpId) -> Self {
+impl<KT: KeyType, KA: KeyAlgorithm> TryFrom<EvpId> for EvpCtx<KT, KA> {
+    type Error = ErrorStack;
+
+    fn try_from(value: EvpId) -> Result<Self, Self::Error> {
         unsafe {
-            Self::from_ptr(EVP_PKEY_CTX_new_id(
+            crate::check_ptr(EVP_PKEY_CTX_new_id(
                 value.get_raw() as i32,
                 std::ptr::null_mut(),
             ))
+            .map(|v| Self::from_ptr(v))
         }
     }
 }
 
-impl<KT: KeyType, KA: KeyAlgorithm> From<&str> for EvpCtx<KT, KA> {
-    fn from(value: &str) -> Self {
+impl<KT: KeyType, KA: KeyAlgorithm> TryFrom<&str> for EvpCtx<KT, KA> {
+    type Error = ErrorStack;
+
+    fn try_from(value: &str) -> Result<Self, Self::Error> {
         unsafe {
-            Self::from_ptr(EVP_PKEY_CTX_new_from_name(
+            crate::check_ptr(EVP_PKEY_CTX_new_from_name(
                 std::ptr::null_mut(),
                 value.as_ptr() as *const c_char,
                 std::ptr::null_mut(),
             ))
+            .map(|v| Self::from_ptr(v))
         }
     }
 }
 
-impl<KT: KeyType, KA: KeyAlgorithm> From<EvpPkey<Private>> for EvpCtx<KT, KA> {
-    fn from(value: EvpPkey<Private>) -> Self {
+impl<KT: KeyType, KA: KeyAlgorithm> TryFrom<EvpPkey<Private>> for EvpCtx<KT, KA> {
+    type Error = ErrorStack;
+
+    fn try_from(value: EvpPkey<Private>) -> Result<Self, Self::Error> {
         unsafe {
-            Self::from_ptr(EVP_PKEY_CTX_new_from_pkey(
+            crate::check_ptr(EVP_PKEY_CTX_new_from_pkey(
                 std::ptr::null_mut(),
                 value.as_ptr(),
                 std::ptr::null_mut(),
             ))
+            .map(|v| Self::from_ptr(v))
         }
     }
 }
