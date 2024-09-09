@@ -6,7 +6,7 @@ use crate::{
 
 use super::{EvpCtx, KeyGen, ParamsKeyGen};
 
-impl KeyGen<EcKey> for EvpCtx<Private, EcKey> {
+impl KeyGen<EcKey> for EvpCtx<Private> {
     fn generate(self, alg: EcKey) -> Result<EvpPkey<Private>, ErrorStack> {
         unsafe {
             let EcKey(_, nid) = alg;
@@ -23,7 +23,7 @@ impl KeyGen<EcKey> for EvpCtx<Private, EcKey> {
     }
 }
 
-impl ParamsKeyGen<EcKey> for EvpCtx<Private, EcKey> {
+impl ParamsKeyGen<EcKey> for EvpCtx<Private> {
     fn generate_with_params(self, params: &OsslParamRef) -> Result<EvpPkey<Private>, ErrorStack> {
         unsafe {
             let m_key = EvpPkey::<Private>::default();

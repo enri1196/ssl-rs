@@ -9,17 +9,17 @@ use crate::{error::ErrorStack, ossl_param::OsslParamRef, ssl::*};
 use super::{EvpId, EvpPkey, KeyAlgorithm, KeyType, Private};
 
 foreign_type! {
-    pub unsafe type EvpCtx<KT: KeyType, KA: KeyAlgorithm> {
+    pub unsafe type EvpCtx<KT: KeyType> {
         type CType = EVP_PKEY_CTX;
-        type PhantomData = (KT, KA);
+        type PhantomData = KT;
         fn drop = EVP_PKEY_CTX_free;
         fn clone = EVP_PKEY_CTX_dup;
     }
 }
 
-impl<KT: KeyType, KA: KeyAlgorithm> EvpCtx<KT, KA> {}
+impl<KT: KeyType> EvpCtx<KT> {}
 
-impl<KT: KeyType, KA: KeyAlgorithm> TryFrom<EvpId> for EvpCtx<KT, KA> {
+impl<KT: KeyType> TryFrom<EvpId> for EvpCtx<KT> {
     type Error = ErrorStack;
 
     fn try_from(value: EvpId) -> Result<Self, Self::Error> {
@@ -33,7 +33,7 @@ impl<KT: KeyType, KA: KeyAlgorithm> TryFrom<EvpId> for EvpCtx<KT, KA> {
     }
 }
 
-impl<KT: KeyType, KA: KeyAlgorithm> TryFrom<&str> for EvpCtx<KT, KA> {
+impl<KT: KeyType> TryFrom<&str> for EvpCtx<KT> {
     type Error = ErrorStack;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
@@ -48,10 +48,10 @@ impl<KT: KeyType, KA: KeyAlgorithm> TryFrom<&str> for EvpCtx<KT, KA> {
     }
 }
 
-impl<KT: KeyType, KA: KeyAlgorithm> TryFrom<EvpPkey<Private>> for EvpCtx<KT, KA> {
+impl<KT: KeyType> TryFrom<&EvpPkey<Private>> for EvpCtx<KT> {
     type Error = ErrorStack;
 
-    fn try_from(value: EvpPkey<Private>) -> Result<Self, Self::Error> {
+    fn try_from(value: &EvpPkey<Private>) -> Result<Self, Self::Error> {
         unsafe {
             crate::check_ptr(EVP_PKEY_CTX_new_from_pkey(
                 std::ptr::null_mut(),

@@ -49,15 +49,11 @@ impl EvpPkey<Private> {
 
     pub fn sign(&self, tbs: &[u8]) -> Result<Vec<u8>, ErrorStack> {
         unsafe {
-            let ctx = EVP_PKEY_CTX_new_from_pkey(
-                std::ptr::null_mut(),
-                self.as_ptr(),
-                std::ptr::null_mut(),
-            );
-            crate::check_code(EVP_PKEY_sign_init(ctx))?;
+            let ctx = EvpCtx::<Private>::try_from(self)?;
+            crate::check_code(EVP_PKEY_sign_init(ctx.as_ptr()))?;
             let mut siglen = 0;
             crate::check_code(EVP_PKEY_sign(
-                ctx,
+                ctx.as_ptr(),
                 std::ptr::null_mut(),
                 &mut siglen,
                 tbs.as_ptr(),
@@ -65,7 +61,7 @@ impl EvpPkey<Private> {
             ))?;
             let mut sig = Vec::with_capacity(siglen);
             crate::check_code(EVP_PKEY_sign(
-                ctx,
+                ctx.as_ptr(),
                 sig.as_mut_ptr(),
                 &mut siglen,
                 tbs.as_ptr(),
@@ -94,7 +90,8 @@ impl TryFrom<RsaParams> for EvpPkey<Private> {
     type Error = ErrorStack;
     fn try_from(value: RsaParams) -> Result<Self, Self::Error> {
         let RsaParams(evp_id, params) = value;
-        EvpCtx::<_, RsaKey>::try_from(evp_id)?.generate_with_params(&params)
+        let ctx = EvpCtx::<Private>::try_from(evp_id)?;
+        ParamsKeyGen::<RsaKey>::generate_with_params(ctx, &params)
     }
 }
 
@@ -110,7 +107,8 @@ impl TryFrom<EcParams> for EvpPkey<Private> {
     type Error = ErrorStack;
     fn try_from(value: EcParams) -> Result<Self, Self::Error> {
         let EcParams(evp_id, params) = value;
-        EvpCtx::<_, EcKey>::try_from(evp_id)?.generate_with_params(&params)
+        let ctx = EvpCtx::<Private>::try_from(evp_id)?;
+        ParamsKeyGen::<EcKey>::generate_with_params(ctx, &params)
     }
 }
 
