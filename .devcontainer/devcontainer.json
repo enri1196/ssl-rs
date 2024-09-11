@@ -1,7 +1,7 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
 // README at: https://github.com/devcontainers/templates/tree/main/src/cpp
 {
-	"name": "C++",
+	"name": "SSL-RS",
 	"build": {
 		"dockerfile": "Dockerfile"
 	},
@@ -27,7 +27,7 @@
 				"vadimcn.vscode-lldb",
 				"NathanJ.cppcheck-plugin",
 				"tamasfe.even-better-toml",
-				"serayuzgur.crates",
+				"fill-labs.dependi",
 				"rust-lang.rust-analyzer"
 			]
 		}

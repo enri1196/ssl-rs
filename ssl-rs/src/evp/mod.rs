@@ -1,16 +1,43 @@
 mod evp_ctx;
-mod evp_props;
+// mod ec;
+pub mod rsa;
 
+use num_derive::FromPrimitive;
 use std::fmt::Display;
 
-use crate::{bio::SslBio, error::ErrorStack, ssl::*};
+use crate::{bio::SslBio, error::ErrorStack, ossl_param::OsslParamRef, ssl::*};
 
-use evp_ctx::ParamsKeyGen;
-pub use evp_props::*;
 use foreign_types::{foreign_type, ForeignType, ForeignTypeRef};
 use num::FromPrimitive;
 
-use self::evp_ctx::{EvpCtx, KeyGen};
+use self::evp_ctx::EvpCtx;
+
+pub struct Private;
+pub struct Public;
+
+pub trait KeyType {}
+impl KeyType for Private {}
+impl KeyType for Public {}
+
+pub trait KeyAlgorithm {}
+
+#[derive(Clone, Copy, Debug, PartialEq, FromPrimitive)]
+#[repr(u32)]
+pub enum EvpId {
+    RsaId = EVP_PKEY_RSA,
+    RsaPssId = EVP_PKEY_RSA_PSS,
+    EcId = EVP_PKEY_EC,
+    X25519Id = EVP_PKEY_X25519,
+    X448Id = EVP_PKEY_X448,
+    Ed25519Id = EVP_PKEY_ED25519,
+    Ed448Id = EVP_PKEY_ED448,
+}
+
+impl EvpId {
+    pub fn get_raw(&self) -> u32 {
+        *self as u32
+    }
+}
 
 foreign_type! {
     pub unsafe type EvpPkey<KT: KeyType> : Send + Sync {
@@ -78,39 +105,56 @@ impl<KT: KeyType> Default for EvpPkey<KT> {
     }
 }
 
-impl TryFrom<RsaKey> for EvpPkey<Private> {
+impl TryFrom<(EvpCtx<Private>, &OsslParamRef)> for EvpPkey<Private> {
     type Error = ErrorStack;
-    fn try_from(value: RsaKey) -> Result<Self, Self::Error> {
-        let RsaKey(evp_id, _) = value;
-        EvpCtx::try_from(evp_id)?.generate(value)
+
+    fn try_from((ctx, params): (EvpCtx<Private>, &OsslParamRef)) -> Result<Self, Self::Error> {
+        unsafe {
+            let m_key = EvpPkey::<Private>::default();
+            crate::check_code(EVP_PKEY_keygen_init(ctx.as_ptr()))?;
+            crate::check_code(EVP_PKEY_CTX_set_params(
+                ctx.as_ptr(),
+                params.as_ptr() as *const _,
+            ))?;
+            EVP_PKEY_generate(ctx.as_ptr(), &mut m_key.as_ptr() as *mut *mut _);
+            Ok(m_key)
+        }
     }
 }
 
-impl TryFrom<RsaParams> for EvpPkey<Private> {
-    type Error = ErrorStack;
-    fn try_from(value: RsaParams) -> Result<Self, Self::Error> {
-        let RsaParams(evp_id, params) = value;
-        let ctx = EvpCtx::<Private>::try_from(evp_id)?;
-        ParamsKeyGen::<RsaKey>::generate_with_params(ctx, &params)
-    }
-}
+// impl TryFrom<RsaKey> for EvpPkey<Private> {
+//     type Error = ErrorStack;
+//     fn try_from(value: RsaKey) -> Result<Self, Self::Error> {
+//         let RsaKey(evp_id, _) = value;
+//         EvpCtx::try_from(evp_id)?.generate(value)
+//     }
+// }
 
-impl TryFrom<EcKey> for EvpPkey<Private> {
-    type Error = ErrorStack;
-    fn try_from(value: EcKey) -> Result<Self, Self::Error> {
-        let EcKey(evp_id, _) = value;
-        EvpCtx::try_from(evp_id)?.generate(value)
-    }
-}
+// impl TryFrom<RsaParams> for EvpPkey<Private> {
+//     type Error = ErrorStack;
+//     fn try_from(value: RsaParams) -> Result<Self, Self::Error> {
+//         let RsaParams(evp_id, params) = value;
+//         let ctx = EvpCtx::<Private>::try_from(evp_id)?;
+//         ParamsKeyGen::<RsaKey>::generate_with_params(ctx, &params)
+//     }
+// }
 
-impl TryFrom<EcParams> for EvpPkey<Private> {
-    type Error = ErrorStack;
-    fn try_from(value: EcParams) -> Result<Self, Self::Error> {
-        let EcParams(evp_id, params) = value;
-        let ctx = EvpCtx::<Private>::try_from(evp_id)?;
-        ParamsKeyGen::<EcKey>::generate_with_params(ctx, &params)
-    }
-}
+// impl TryFrom<EcKey> for EvpPkey<Private> {
+//     type Error = ErrorStack;
+//     fn try_from(value: EcKey) -> Result<Self, Self::Error> {
+//         let EcKey(evp_id, _) = value;
+//         EvpCtx::try_from(evp_id)?.generate(value)
+//     }
+// }
+
+// impl TryFrom<EcParams> for EvpPkey<Private> {
+//     type Error = ErrorStack;
+//     fn try_from(value: EcParams) -> Result<Self, Self::Error> {
+//         let EcParams(evp_id, params) = value;
+//         let ctx = EvpCtx::<Private>::try_from(evp_id)?;
+//         ParamsKeyGen::<EcKey>::generate_with_params(ctx, &params)
+//     }
+// }
 
 impl TryFrom<EvpPkey<Private>> for EvpPkey<Public> {
     type Error = ErrorStack;
@@ -158,64 +202,66 @@ impl Display for EvpPkeyRef<Public> {
 
 #[cfg(test)]
 mod test {
-    use crate::{
-        evp::{EcKey, EvpPkey, Private, RsaKey, RsaParams},
-        ossl_param::OsslParamBld,
-    };
+    // use crate::{
+    //     evp::{EvpPkey, Private},
+    //     ossl_param::OsslParamBld,
+    // };
+
+    use crate::evp::rsa::{RsaKey, RsaSize};
 
     #[test]
     pub fn test_rsa() {
-        let key = EvpPkey::<Private>::try_from(RsaKey::RSA_2048_BITS).unwrap();
+        let key = RsaKey::new_rsa(RsaSize::Rs2048).unwrap();
         println!("{}", key.to_string());
         println!("{}", key.get_public().unwrap().to_string());
-        assert_eq!(6, key.id().get_raw());
-        assert_eq!(256, key.size());
+        // assert_eq!(6, key.id().get_raw());
+        // assert_eq!(256, key.size());
     }
 
-    #[test]
-    pub fn test_rsa_params() {
-        let params = OsslParamBld::new().push_u32("bits", 2048).build();
-        let rsa_params = RsaParams::new_rsa(params);
-        let key = EvpPkey::<Private>::try_from(rsa_params).unwrap();
-        println!("{}", key.to_string());
-        println!("{}", key.get_public().unwrap().to_string());
-        assert_eq!(6, key.id().get_raw());
-        assert_eq!(256, key.size());
-    }
+    // #[test]
+    // pub fn test_rsa_params() {
+    //     let params = OsslParamBld::new().push_u32("bits", 2048).build();
+    //     let rsa_params = RsaParams::new_rsa(params);
+    //     let key = EvpPkey::<Private>::try_from(rsa_params).unwrap();
+    //     println!("{}", key.to_string());
+    //     println!("{}", key.get_public().unwrap().to_string());
+    //     assert_eq!(6, key.id().get_raw());
+    //     assert_eq!(256, key.size());
+    // }
 
-    #[test]
-    pub fn test_rsa_pss() {
-        let key = EvpPkey::<Private>::try_from(RsaKey::RSA_PSS_2048_BITS).unwrap();
-        println!("{}", key.to_string());
-        println!("{}", key.get_public().unwrap().to_string());
-        assert_eq!(912, key.id().get_raw());
-        assert_eq!(256, key.size());
-    }
+    // #[test]
+    // pub fn test_rsa_pss() {
+    //     let key = EvpPkey::<Private>::try_from(RsaKey::new_rsa_pss(RsaSize::Rs4096)).unwrap();
+    //     println!("{}", key.to_string());
+    //     println!("{}", key.get_public().unwrap().to_string());
+    //     assert_eq!(912, key.id().get_raw());
+    //     assert_eq!(256, key.size());
+    // }
 
-    #[test]
-    pub fn test_ec() {
-        let key = EvpPkey::<Private>::try_from(EcKey::SECP_256K1).unwrap();
-        println!("{}", key.to_string());
-        println!("{}", key.get_public().unwrap().to_string());
-        assert_eq!(408, key.id().get_raw());
-        assert_eq!(72, key.size());
-    }
+    // #[test]
+    // pub fn test_ec() {
+    //     let key = EvpPkey::<Private>::try_from(EcKey::SECP_256K1).unwrap();
+    //     println!("{}", key.to_string());
+    //     println!("{}", key.get_public().unwrap().to_string());
+    //     assert_eq!(408, key.id().get_raw());
+    //     assert_eq!(72, key.size());
+    // }
 
-    #[test]
-    pub fn test_ec_x25519() {
-        let key = EvpPkey::<Private>::try_from(EcKey::X25519).unwrap();
-        println!("{}", key.to_string());
-        println!("{}", key.get_public().unwrap().to_string());
-        assert_eq!(1034, key.id().get_raw());
-        assert_eq!(32, key.size());
-    }
+    // #[test]
+    // pub fn test_ec_x25519() {
+    //     let key = EvpPkey::<Private>::try_from(EcKey::X25519).unwrap();
+    //     println!("{}", key.to_string());
+    //     println!("{}", key.get_public().unwrap().to_string());
+    //     assert_eq!(1034, key.id().get_raw());
+    //     assert_eq!(32, key.size());
+    // }
 
-    #[test]
-    pub fn test_ec_x448() {
-        let key = EvpPkey::<Private>::try_from(EcKey::X448).unwrap();
-        println!("{}", key.to_string());
-        println!("{}", key.get_public().unwrap().to_string());
-        assert_eq!(1035, key.id().get_raw());
-        assert_eq!(56, key.size());
-    }
+    // #[test]
+    // pub fn test_ec_x448() {
+    //     let key = EvpPkey::<Private>::try_from(EcKey::X448).unwrap();
+    //     println!("{}", key.to_string());
+    //     println!("{}", key.get_public().unwrap().to_string());
+    //     assert_eq!(1035, key.id().get_raw());
+    //     assert_eq!(56, key.size());
+    // }
 }

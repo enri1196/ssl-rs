@@ -1,6 +1,3 @@
-mod ec;
-mod rsa;
-
 use foreign_types::{foreign_type, ForeignType};
 use std::ffi::c_char;
 
@@ -19,16 +16,13 @@ foreign_type! {
 
 impl<KT: KeyType> EvpCtx<KT> {}
 
-impl<KT: KeyType> TryFrom<EvpId> for EvpCtx<KT> {
-    type Error = ErrorStack;
-
-    fn try_from(value: EvpId) -> Result<Self, Self::Error> {
+impl<KT: KeyType> From<EvpId> for EvpCtx<KT> {
+    fn from(value: EvpId) -> Self {
         unsafe {
-            crate::check_ptr(EVP_PKEY_CTX_new_id(
+            Self::from_ptr(EVP_PKEY_CTX_new_id(
                 value.get_raw() as i32,
                 std::ptr::null_mut(),
             ))
-            .map(|v| Self::from_ptr(v))
         }
     }
 }
@@ -61,12 +55,4 @@ impl<KT: KeyType> TryFrom<&EvpPkey<Private>> for EvpCtx<KT> {
             .map(|v| Self::from_ptr(v))
         }
     }
-}
-
-pub trait KeyGen<KA: KeyAlgorithm> {
-    fn generate(self, alg: KA) -> Result<EvpPkey<Private>, ErrorStack>;
-}
-
-pub trait ParamsKeyGen<KA: KeyAlgorithm> {
-    fn generate_with_params(self, params: &OsslParamRef) -> Result<EvpPkey<Private>, ErrorStack>;
 }
