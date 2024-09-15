@@ -10,6 +10,7 @@
 #include <openssl/comp.h>
 #include <openssl/core.h>
 #include <openssl/core_dispatch.h>
+#include <openssl/core_names.h>
 #include <openssl/core_object.h>
 #include <openssl/crypto.h>
 #include <openssl/crmf.h>
@@ -30,6 +31,9 @@
 #include <openssl/param_build.h>
 #include <openssl/pem.h>
 #include <openssl/pem2.h>
+#include <openssl/prov_ssl.h>
+#include <openssl/proverr.h>
+#include <openssl/provider.h>
 #include <openssl/pkcs7.h>
 #include <openssl/pkcs12.h>
 #include <openssl/rand.h>

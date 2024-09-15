@@ -15,14 +15,17 @@ impl SslBio {
         Self::default()
     }
 
-    pub fn get_data(&self) -> &[u8] {
+    pub fn get_data(&self) -> Option<&[u8]> {
         unsafe fn get_mem_data(b: *mut BIO, pp: *mut *mut std::ffi::c_char) -> std::ffi::c_long {
             BIO_ctrl(b, BIO_CTRL_INFO as i32, 0, pp as *mut std::ffi::c_void)
         }
         unsafe {
             let mut ptr = std::ptr::null_mut();
             let len = get_mem_data(self.as_ptr(), &mut ptr);
-            std::slice::from_raw_parts(ptr as *const _, len as usize)
+            if ptr.is_null() {
+                return None;
+            }
+            Some(std::slice::from_raw_parts(ptr as *const _, len as usize))
         }
     }
 }

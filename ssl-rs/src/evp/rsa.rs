@@ -2,11 +2,9 @@ use std::fmt::Display;
 
 use crate::{
     error::ErrorStack,
-    evp::{EvpId, EvpPkey, Private},
+    evp::{EvpCtx, EvpId, EvpPkey, KeyType, Private, Public},
     ossl_param::{OsslParamBld, OsslParamRef},
 };
-
-use super::{EvpCtx, KeyType, Public};
 
 #[derive(Debug, Clone, Copy)]
 #[repr(u32)]

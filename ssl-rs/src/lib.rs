@@ -17,11 +17,12 @@ use std::{
 };
 
 pub fn init() {
-    const INIT_OPTIONS: u32 = ssl::OPENSSL_INIT_LOAD_SSL_STRINGS | ssl::OPENSSL_INIT_NO_ATEXIT;
+    const INIT_OPTIONS: u64 =
+        ssl::OPENSSL_INIT_LOAD_SSL_STRINGS as u64 | ssl::OPENSSL_INIT_NO_ATEXIT as u64;
 
     static SSL_INIT: Once = Once::new();
     SSL_INIT.call_once(|| unsafe {
-        ssl::OPENSSL_init_ssl(INIT_OPTIONS as u64, std::ptr::null_mut());
+        ssl::OPENSSL_init_ssl(INIT_OPTIONS, std::ptr::null_mut());
     })
 }
 
@@ -47,7 +48,9 @@ fn check_cptr<T>(r: *const T) -> Result<*const T, error::ErrorStack> {
 #[inline]
 fn check_code(r: c_int) -> Result<c_int, error::ErrorStack> {
     if r <= 0 {
-        Err(error::ErrorStack::get())
+        let err = error::ErrorStack::get();
+        println!("ERROR: {err}");
+        Err(err)
     } else {
         Ok(r)
     }

@@ -48,7 +48,11 @@ impl Display for Asn1TimeRef {
         unsafe {
             let bio = SslBio::memory();
             ASN1_TIME_print_ex(bio.as_ptr(), self.as_ptr() as *const _, 0);
-            write!(f, "{}", std::str::from_utf8_unchecked(bio.get_data()))
+            write!(
+                f,
+                "{}",
+                std::str::from_utf8_unchecked(bio.get_data().unwrap())
+            )
         }
     }
 }

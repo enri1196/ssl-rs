@@ -38,6 +38,19 @@ impl OsslParamBld {
         }
     }
 
+    pub fn push_str(self, key: &str, value: &str) -> Self {
+        unsafe {
+            crate::check_code(OSSL_PARAM_BLD_push_utf8_string(
+                self.as_ptr(),
+                key.as_ptr() as *const c_char,
+                value.as_ptr(),
+                value.len(),
+            ))
+            .expect("OSSL_PARAM_BLD_push_utf8_string failed");
+            self
+        }
+    }
+
     pub fn build(self) -> OsslParam {
         unsafe { OsslParam::from_ptr(OSSL_PARAM_BLD_to_param(self.as_ptr())) }
     }

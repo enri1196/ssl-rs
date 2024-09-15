@@ -1,9 +1,9 @@
 use foreign_types::{foreign_type, ForeignType};
 use std::ffi::c_char;
 
-use crate::{error::ErrorStack, ossl_param::OsslParamRef, ssl::*};
+use crate::{error::ErrorStack, ssl::*};
 
-use super::{EvpId, EvpPkey, KeyAlgorithm, KeyType, Private};
+use super::{EvpId, EvpPkey, KeyType, Private};
 
 foreign_type! {
     pub unsafe type EvpCtx<KT: KeyType> {

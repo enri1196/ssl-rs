@@ -1,5 +1,5 @@
+pub mod ec;
 mod evp_ctx;
-// mod ec;
 pub mod rsa;
 
 use num_derive::FromPrimitive;
@@ -116,7 +116,10 @@ impl TryFrom<(EvpCtx<Private>, &OsslParamRef)> for EvpPkey<Private> {
                 ctx.as_ptr(),
                 params.as_ptr() as *const _,
             ))?;
-            EVP_PKEY_generate(ctx.as_ptr(), &mut m_key.as_ptr() as *mut *mut _);
+            crate::check_code(EVP_PKEY_generate(
+                ctx.as_ptr(),
+                &mut m_key.as_ptr() as *mut *mut _,
+            ))?;
             Ok(m_key)
         }
     }
@@ -179,7 +182,10 @@ impl Display for EvpPkeyRef<Private> {
                 std::ptr::null_mut(),
             ))
             .unwrap();
-            write!(f, "{}", std::str::from_utf8_unchecked(bio.get_data()))
+            match bio.get_data() {
+                Some(data) => write!(f, "{}", std::str::from_utf8_unchecked(data)),
+                None => Err(std::fmt::Error),
+            }
         }
     }
 }
@@ -195,19 +201,21 @@ impl Display for EvpPkeyRef<Public> {
                 std::ptr::null_mut(),
             ))
             .unwrap();
-            write!(f, "{}", std::str::from_utf8_unchecked(bio.get_data()))
+            match bio.get_data() {
+                Some(data) => write!(f, "{}", std::str::from_utf8_unchecked(data)),
+                None => Err(std::fmt::Error),
+            }
         }
     }
 }
 
 #[cfg(test)]
 mod test {
-    // use crate::{
-    //     evp::{EvpPkey, Private},
-    //     ossl_param::OsslParamBld,
-    // };
-
-    use crate::evp::rsa::{RsaKey, RsaSize};
+    use crate::evp::{
+        ec::{CurveNid, EcKey},
+        rsa::{RsaKey, RsaSize},
+        Private,
+    };
 
     #[test]
     pub fn test_rsa() {
@@ -238,14 +246,14 @@ mod test {
     //     assert_eq!(256, key.size());
     // }
 
-    // #[test]
-    // pub fn test_ec() {
-    //     let key = EvpPkey::<Private>::try_from(EcKey::SECP_256K1).unwrap();
-    //     println!("{}", key.to_string());
-    //     println!("{}", key.get_public().unwrap().to_string());
-    //     assert_eq!(408, key.id().get_raw());
-    //     assert_eq!(72, key.size());
-    // }
+    #[test]
+    pub fn test_ec() {
+        let key = EcKey::<Private>::new_ec(CurveNid::Prime256v1).unwrap();
+        println!("{}", key.to_string());
+        println!("{}", key.get_public().unwrap().to_string());
+        // assert_eq!(408, key.id().get_raw());
+        // assert_eq!(72, key.size());
+    }
 
     // #[test]
     // pub fn test_ec_x25519() {

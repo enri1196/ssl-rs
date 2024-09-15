@@ -39,7 +39,11 @@ impl Display for X509NameRef {
         unsafe {
             let bio = SslBio::memory();
             X509_NAME_print_ex(bio.as_ptr(), self.as_ptr(), 0, XN_FLAG_RFC2253 as u64);
-            write!(f, "{}", std::str::from_utf8_unchecked(bio.get_data()))
+            write!(
+                f,
+                "{}",
+                std::str::from_utf8_unchecked(bio.get_data().unwrap())
+            )
         }
     }
 }

@@ -13,12 +13,24 @@ pub struct ErrorStack {
 impl ErrorStack {
     pub fn get() -> ErrorStack {
         unsafe {
+            let code = ERR_get_error();
+
+            if code == 0 {
+                return ErrorStack {
+                    code: 0,
+                    reason: String::from("No error"),
+                };
+            }
+
             let bio = SslBio::memory();
             ERR_print_errors(bio.as_ptr());
-            ErrorStack {
-                code: ERR_get_error(),
-                reason: String::from_utf8(bio.get_data().to_vec()).unwrap_or_default(),
-            }
+
+            let reason = bio
+                .get_data()
+                .and_then(|data| String::from_utf8(data.to_vec()).ok())
+                .unwrap_or_else(|| "Unknown error".to_string());
+
+            ErrorStack { code, reason }
         }
     }
 }
