@@ -10,14 +10,38 @@ use crate::{
 
 #[derive(Debug, Clone, Copy)]
 pub enum CurveNid {
-    // Secp112r1,
-    // Secp112r2,
-    // Secp128r1,
-    // Secp521r1,
-    // Secp128r2,
     Prime256v1,
-    Secp521r1,
+    Secp112r1,
+    Secp112r2,
+    Secp128r1,
+    Secp128r2,
+    Secp160k1,
+    Secp160r1,
+    Secp160r2,
+    Secp192k1,
+    Secp224k1,
+    Secp224r1,
     Secp256k1,
+    Secp384r1,
+    Secp521r1,
+    Sect113r1,
+    Sect113r2,
+    Sect131r1,
+    Sect131r2,
+    Sect163k1,
+    Sect163r1,
+    Sect163r2,
+    Sect193r1,
+    Sect193r2,
+    Sect233k1,
+    Sect233r1,
+    Sect239k1,
+    Sect283k1,
+    Sect283r1,
+    Sect409k1,
+    Sect409r1,
+    Sect571k1,
+    Sect571r1,
     // X25519 = NID_X25519,
     // X448 = NID_X448,
     // ED25519 = NID_ED25519,
@@ -28,26 +52,38 @@ impl CurveNid {
     pub const fn as_str(&self) -> &'static str {
         unsafe {
             match self {
-                // CurveNid::Secp112r1 => {
-                //     std::str::from_raw_parts(SN_secp112r1.as_ptr(), SN_secp112r1.len())
-                // }
-                // CurveNid::Secp112r2 => {
-                //     std::str::from_raw_parts(SN_secp112r2.as_ptr(), SN_secp112r2.len())
-                // }
-                // CurveNid::Secp128r1 => {
-                //     std::str::from_raw_parts(SN_secp128r1.as_ptr(), SN_secp128r1.len())
-                // }
-                // CurveNid::Secp521r1 => {
-                //     std::str::from_raw_parts(SN_secp521r1.as_ptr(), SN_secp521r1.len())
-                // }
-                // CurveNid::Secp128r2 => {
-                //     std::str::from_raw_parts(SN_secp128r2.as_ptr(), SN_secp128r2.len())
-                // }
-                CurveNid::Prime256v1 => {
-                    std::str::from_utf8_unchecked(SN_X9_62_prime256v1.as_slice())
-                }
-                CurveNid::Secp521r1 => std::str::from_utf8_unchecked(SN_secp521r1.as_slice()),
-                CurveNid::Secp256k1 => std::str::from_utf8_unchecked(SN_secp256k1.as_slice()),
+                Self::Prime256v1 => std::str::from_utf8_unchecked(SN_X9_62_prime256v1.to_bytes()),
+                Self::Secp112r1 => std::str::from_utf8_unchecked(SN_secp112r1.to_bytes()),
+                Self::Secp112r2 => std::str::from_utf8_unchecked(SN_secp112r2.to_bytes()),
+                Self::Secp128r1 => std::str::from_utf8_unchecked(SN_secp128r1.to_bytes()),
+                Self::Secp128r2 => std::str::from_utf8_unchecked(SN_secp128r2.to_bytes()),
+                Self::Secp160k1 => std::str::from_utf8_unchecked(SN_secp160k1.to_bytes()),
+                Self::Secp160r1 => std::str::from_utf8_unchecked(SN_secp160r1.to_bytes()),
+                Self::Secp160r2 => std::str::from_utf8_unchecked(SN_secp160r2.to_bytes()),
+                Self::Secp192k1 => std::str::from_utf8_unchecked(SN_secp192k1.to_bytes()),
+                Self::Secp224k1 => std::str::from_utf8_unchecked(SN_secp224k1.to_bytes()),
+                Self::Secp224r1 => std::str::from_utf8_unchecked(SN_secp224r1.to_bytes()),
+                Self::Secp256k1 => std::str::from_utf8_unchecked(SN_secp256k1.to_bytes()),
+                Self::Secp384r1 => std::str::from_utf8_unchecked(SN_secp384r1.to_bytes()),
+                Self::Secp521r1 => std::str::from_utf8_unchecked(SN_secp521r1.to_bytes()),
+                Self::Sect113r1 => std::str::from_utf8_unchecked(SN_sect113r1.to_bytes()),
+                Self::Sect113r2 => std::str::from_utf8_unchecked(SN_sect113r2.to_bytes()),
+                Self::Sect131r1 => std::str::from_utf8_unchecked(SN_sect131r1.to_bytes()),
+                Self::Sect131r2 => std::str::from_utf8_unchecked(SN_sect131r2.to_bytes()),
+                Self::Sect163k1 => std::str::from_utf8_unchecked(SN_sect163k1.to_bytes()),
+                Self::Sect163r1 => std::str::from_utf8_unchecked(SN_sect163r1.to_bytes()),
+                Self::Sect163r2 => std::str::from_utf8_unchecked(SN_sect163r2.to_bytes()),
+                Self::Sect193r1 => std::str::from_utf8_unchecked(SN_sect193r1.to_bytes()),
+                Self::Sect193r2 => std::str::from_utf8_unchecked(SN_sect193r2.to_bytes()),
+                Self::Sect233k1 => std::str::from_utf8_unchecked(SN_sect233k1.to_bytes()),
+                Self::Sect233r1 => std::str::from_utf8_unchecked(SN_sect233r1.to_bytes()),
+                Self::Sect239k1 => std::str::from_utf8_unchecked(SN_sect239k1.to_bytes()),
+                Self::Sect283k1 => std::str::from_utf8_unchecked(SN_sect283k1.to_bytes()),
+                Self::Sect283r1 => std::str::from_utf8_unchecked(SN_sect283r1.to_bytes()),
+                Self::Sect409k1 => std::str::from_utf8_unchecked(SN_sect409k1.to_bytes()),
+                Self::Sect409r1 => std::str::from_utf8_unchecked(SN_sect409r1.to_bytes()),
+                Self::Sect571k1 => std::str::from_utf8_unchecked(SN_sect571k1.to_bytes()),
+                Self::Sect571r1 => std::str::from_utf8_unchecked(SN_sect571r1.to_bytes()),
             }
         }
     }
@@ -59,10 +95,8 @@ pub struct EcKey<KT: KeyType>(EvpPkey<KT>);
 impl EcKey<Private> {
     pub fn new_ec(curve: CurveNid) -> Result<Self, ErrorStack> {
         let ctx = EvpCtx::<Private>::from(EvpId::EcId);
-        let key = std::str::from_utf8(OSSL_PKEY_PARAM_GROUP_NAME.as_slice()).unwrap();
-        let params = OsslParamBld::new()
-            .push_str(key, curve.as_str())
-            .build();
+        let key = std::str::from_utf8(OSSL_PKEY_PARAM_GROUP_NAME.to_bytes()).unwrap();
+        let params = OsslParamBld::new().push_str(key, curve.as_str()).build();
         Self::try_from((ctx, params.as_ref()))
     }
 
@@ -87,14 +121,20 @@ impl TryFrom<&EcKey<Private>> for EcKey<Public> {
     }
 }
 
+impl From<EcKey<Private>> for EvpPkey<Private> {
+    fn from(value: EcKey<Private>) -> Self {
+        value.0
+    }
+}
+
 impl Display for EcKey<Private> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0.to_string())
+        write!(f, "{}", self.0.as_ref())
     }
 }
 
 impl Display for EcKey<Public> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.0.to_string())
+        write!(f, "{}", self.0.as_ref())
     }
 }
