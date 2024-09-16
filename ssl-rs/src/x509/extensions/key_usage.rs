@@ -19,7 +19,7 @@ pub enum KeyUsageValue {
     EncipherOnly = KU_ENCIPHER_ONLY,
     DecipherOnly = KU_DECIPHER_ONLY,
     #[default]
-    Absent = UINT32_MAX,
+    Absent = u32::MAX,
 }
 
 impl BitOr<KeyUsageValue> for KeyUsageValue {

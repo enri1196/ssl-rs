@@ -22,7 +22,7 @@ pub enum ExtKeyUsageValue {
     DVCS = XKU_DVCS,
     Anyeku = XKU_ANYEKU,
     #[default]
-    Absent = UINT32_MAX,
+    Absent = u32::MAX,
 }
 
 impl BitOr<ExtKeyUsageValue> for ExtKeyUsageValue {
