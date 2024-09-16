@@ -29,20 +29,20 @@ impl X509ExtNid {
     }
 
     pub const BASIC_CONSTRAINTS: X509ExtNid = X509ExtNid(
-        unsafe { std::str::from_utf8_unchecked(SN_basic_constraints) },
-        unsafe { std::str::from_utf8_unchecked(LN_basic_constraints) },
+        unsafe { std::str::from_utf8_unchecked(SN_basic_constraints.to_bytes()) },
+        unsafe { std::str::from_utf8_unchecked(LN_basic_constraints.to_bytes()) },
         NID_basic_constraints as i32,
     );
 
     pub const KEY_USAGE: X509ExtNid = X509ExtNid(
-        unsafe { std::str::from_utf8_unchecked(SN_key_usage) },
-        unsafe { std::str::from_utf8_unchecked(LN_key_usage) },
+        unsafe { std::str::from_utf8_unchecked(SN_key_usage.to_bytes()) },
+        unsafe { std::str::from_utf8_unchecked(LN_key_usage.to_bytes()) },
         NID_key_usage as i32,
     );
 
     pub const EXT_KEY_USAGE: X509ExtNid = X509ExtNid(
-        unsafe { std::str::from_utf8_unchecked(SN_ext_key_usage) },
-        unsafe { std::str::from_utf8_unchecked(LN_ext_key_usage) },
+        unsafe { std::str::from_utf8_unchecked(SN_ext_key_usage.to_bytes()) },
+        unsafe { std::str::from_utf8_unchecked(LN_ext_key_usage.to_bytes()) },
         NID_ext_key_usage as i32,
     );
 }
