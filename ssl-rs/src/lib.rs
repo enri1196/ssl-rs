@@ -11,20 +11,7 @@ pub mod ossl_param;
 pub mod tsp;
 pub mod x509;
 
-use std::{
-    ffi::{c_int, c_long},
-    sync::Once,
-};
-
-pub fn init() {
-    const INIT_OPTIONS: u64 =
-        ssl::OPENSSL_INIT_LOAD_SSL_STRINGS as u64 | ssl::OPENSSL_INIT_NO_ATEXIT as u64;
-
-    static SSL_INIT: Once = Once::new();
-    SSL_INIT.call_once(|| unsafe {
-        ssl::OPENSSL_init_ssl(INIT_OPTIONS, std::ptr::null_mut());
-    })
-}
+use std::ffi::{c_int, c_long};
 
 #[inline]
 fn check_ptr<T>(r: *mut T) -> Result<*mut T, error::ErrorStack> {
