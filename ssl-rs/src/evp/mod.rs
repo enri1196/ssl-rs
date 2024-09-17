@@ -1,4 +1,5 @@
 pub mod ec;
+pub mod ecdh;
 mod evp_ctx;
 pub mod rsa;
 
@@ -164,7 +165,7 @@ impl Display for EvpPkeyRef<Public> {
 #[cfg(test)]
 mod test {
     use crate::evp::{
-        ec::{CurveNid, EcKey},
+        ec::{CurveNid, CurveRawNid, EcKey},
         rsa::{RsaKey, RsaSize},
         Private,
     };
@@ -181,6 +182,15 @@ mod test {
     #[test]
     pub fn test_ec() {
         let key = EcKey::<Private>::new_ec(CurveNid::Prime256v1).unwrap();
+        println!("{}", key.to_string());
+        println!("{}", key.get_public().unwrap().to_string());
+        // assert_eq!(408, key.id().get_raw());
+        // assert_eq!(72, key.size());
+    }
+
+    #[test]
+    pub fn test_raw_ec() {
+        let key = EcKey::<Private>::new_raw_ec(CurveRawNid::X25519).unwrap();
         println!("{}", key.to_string());
         println!("{}", key.get_public().unwrap().to_string());
         // assert_eq!(408, key.id().get_raw());
