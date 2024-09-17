@@ -48,10 +48,12 @@ mod test {
     #[test]
     pub fn test_ecdh() {
         let alice_key: EvpPkey<Private> = EcKey::new_raw_ec(CurveRawNid::X25519).unwrap().into();
+        let alice_pub_key = alice_key.get_public().unwrap();
         let bob_key: EvpPkey<Private> = EcKey::new_raw_ec(CurveRawNid::X25519).unwrap().into();
+        let bob_pub_key = bob_key.get_public().unwrap();
 
-        let alice_secret = Ecdh::new(&alice_key, &bob_key.get_public().unwrap()).unwrap();
-        let bob_secret = Ecdh::new(&bob_key, &alice_key.get_public().unwrap()).unwrap();
+        let alice_secret = Ecdh::new(&alice_key, &alice_pub_key).unwrap();
+        let bob_secret = Ecdh::new(&bob_key, &bob_pub_key).unwrap();
 
         assert_eq!(alice_secret.len(), bob_secret.len());
         assert_eq!(alice_secret.to_bytes(), bob_secret.to_bytes());
