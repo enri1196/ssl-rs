@@ -70,6 +70,12 @@ impl From<RsaKey<Private>> for EvpPkey<Private> {
     }
 }
 
+impl From<RsaKey<Public>> for EvpPkey<Public> {
+    fn from(value: RsaKey<Public>) -> Self {
+        value.0
+    }
+}
+
 impl Display for RsaKey<Private> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0.as_ref())
