@@ -26,7 +26,7 @@ impl BasicConstraints {
 
 impl Display for BasicConstraints {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut value = String::new();
+        let mut value = String::with_capacity(30);
         if self.critical {
             value.push_str("critical,");
         }
