@@ -13,7 +13,10 @@ use foreign_types::{foreign_type, ForeignType, ForeignTypeRef};
 
 use self::evp_ctx::EvpCtx;
 
+#[derive(Clone, Copy)]
 pub struct Private;
+
+#[derive(Clone, Copy)]
 pub struct Public;
 
 pub trait KeyType {}
