@@ -20,26 +20,26 @@ pub struct RsaKey<KT: KeyType>(EvpPkey<KT>);
 
 impl RsaKey<Private> {
     pub fn new_rsa(size: RsaSize) -> Result<Self, ErrorStack> {
-        let ctx = EvpCtx::<Private>::from(EvpId::RsaId);
+        let ctx = EvpCtx::from(EvpId::RsaId);
         let bits = std::str::from_utf8(OSSL_PKEY_PARAM_RSA_BITS.to_bytes()).unwrap();
         let params = OsslParamBld::new().push_u32(bits, size as u32).build();
         Self::try_from((ctx, params.as_ref()))
     }
 
     pub fn new_rsa_pss(size: RsaSize) -> Result<Self, ErrorStack> {
-        let ctx = EvpCtx::<Private>::from(EvpId::RsaPssId);
+        let ctx = EvpCtx::from(EvpId::RsaPssId);
         let bits = std::str::from_utf8(OSSL_PKEY_PARAM_RSA_BITS.to_bytes()).unwrap();
         let params = OsslParamBld::new().push_u32(bits, size as u32).build();
         Self::try_from((ctx, params.as_ref()))
     }
 
     pub fn new_rsa_with_params(params: &OsslParamRef) -> Result<Self, ErrorStack> {
-        let ctx = EvpCtx::<Private>::from(EvpId::RsaId);
+        let ctx = EvpCtx::from(EvpId::RsaId);
         Self::try_from((ctx, params))
     }
 
     pub fn new_rsa_pss_with_params(params: &OsslParamRef) -> Result<Self, ErrorStack> {
-        let ctx = EvpCtx::<Private>::from(EvpId::RsaPssId);
+        let ctx = EvpCtx::from(EvpId::RsaPssId);
         Self::try_from((ctx, params))
     }
 
@@ -48,10 +48,10 @@ impl RsaKey<Private> {
     }
 }
 
-impl TryFrom<(EvpCtx<Private>, &OsslParamRef)> for RsaKey<Private> {
+impl TryFrom<(EvpCtx, &OsslParamRef)> for RsaKey<Private> {
     type Error = ErrorStack;
 
-    fn try_from((ctx, params): (EvpCtx<Private>, &OsslParamRef)) -> Result<Self, Self::Error> {
+    fn try_from((ctx, params): (EvpCtx, &OsslParamRef)) -> Result<Self, Self::Error> {
         EvpPkey::try_from((ctx, params)).map(Self)
     }
 }

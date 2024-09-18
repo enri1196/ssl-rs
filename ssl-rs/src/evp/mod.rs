@@ -1,3 +1,4 @@
+pub mod digest;
 pub mod ec;
 pub mod ecdh;
 mod evp_ctx;
@@ -63,7 +64,7 @@ impl EvpPkey<Private> {
 
     pub fn sign(&self, tbs: &[u8]) -> Result<Vec<u8>, ErrorStack> {
         unsafe {
-            let ctx = EvpCtx::<Private>::try_from(self)?;
+            let ctx = EvpCtx::try_from(self)?;
             crate::check_code(EVP_PKEY_sign_init(ctx.as_ptr()))?;
             let mut siglen = 0;
             crate::check_code(EVP_PKEY_sign(
@@ -92,10 +93,10 @@ impl<KT: KeyType> Default for EvpPkey<KT> {
     }
 }
 
-impl TryFrom<(EvpCtx<Private>, &OsslParamRef)> for EvpPkey<Private> {
+impl TryFrom<(EvpCtx, &OsslParamRef)> for EvpPkey<Private> {
     type Error = ErrorStack;
 
-    fn try_from((ctx, params): (EvpCtx<Private>, &OsslParamRef)) -> Result<Self, Self::Error> {
+    fn try_from((ctx, params): (EvpCtx, &OsslParamRef)) -> Result<Self, Self::Error> {
         unsafe {
             let m_key = EvpPkey::<Private>::default();
             crate::check_code(EVP_PKEY_keygen_init(ctx.as_ptr()))?;

@@ -9,12 +9,12 @@ use super::{evp_ctx::EvpCtx, EvpPkey, Private, Public};
 pub struct Ecdh(Vec<u8>);
 
 impl Ecdh {
-    pub fn new(
+    pub fn generate_secret(
         first_pkey: &EvpPkey<Private>,
         second_pkey: &EvpPkey<Public>,
     ) -> Result<Self, ErrorStack> {
         unsafe {
-            let derive_ctx = EvpCtx::<Private>::try_from(first_pkey)?;
+            let derive_ctx = EvpCtx::try_from(first_pkey)?;
             crate::check_code(EVP_PKEY_derive_init(derive_ctx.as_ptr()))?;
             crate::check_code(EVP_PKEY_derive_set_peer(
                 derive_ctx.as_ptr(),
@@ -28,6 +28,7 @@ impl Ecdh {
             ))?;
 
             let mut secret = Vec::with_capacity(secret_len);
+            secret.set_len(secret_len);
             crate::check_code(EVP_PKEY_derive(
                 derive_ctx.as_ptr(),
                 secret.as_mut_ptr(),
@@ -69,11 +70,18 @@ mod test {
         let bob_key: EvpPkey<Private> = EcKey::new_raw_ec(CurveRawNid::X25519).unwrap().into();
         let bob_pub_key = bob_key.get_public().unwrap();
 
-        let alice_secret = Ecdh::new(&alice_key, &bob_pub_key).unwrap();
-        let bob_secret = Ecdh::new(&bob_key, &alice_pub_key).unwrap();
+        let alice_secret = Ecdh::generate_secret(&alice_key, &bob_pub_key).unwrap();
+        let bob_secret = Ecdh::generate_secret(&bob_key, &alice_pub_key).unwrap();
+
+        println!(
+            "ALICE LEN: {} -- BOB LEN: {}",
+            alice_secret.len(),
+            bob_secret.len()
+        );
+        println!("ALICE: {:?}", alice_secret.to_bytes());
+        println!("BOB:   {:?}", bob_secret.to_bytes());
 
         assert_eq!(alice_secret.len(), bob_secret.len());
-        assert_eq!(alice_secret.to_bytes(), bob_secret.to_bytes());
         assert_eq!(alice_secret, bob_secret);
     }
 }

@@ -3,20 +3,17 @@ use std::ffi::c_char;
 
 use crate::{error::ErrorStack, ssl::*};
 
-use super::{EvpId, EvpPkey, KeyType, Private};
+use super::{EvpId, EvpPkey, Private};
 
 foreign_type! {
-    pub unsafe type EvpCtx<KT: KeyType> {
+    pub unsafe type EvpCtx {
         type CType = EVP_PKEY_CTX;
-        type PhantomData = KT;
         fn drop = EVP_PKEY_CTX_free;
         fn clone = EVP_PKEY_CTX_dup;
     }
 }
 
-impl<KT: KeyType> EvpCtx<KT> {}
-
-impl<KT: KeyType> From<EvpId> for EvpCtx<KT> {
+impl From<EvpId> for EvpCtx {
     fn from(value: EvpId) -> Self {
         unsafe {
             Self::from_ptr(EVP_PKEY_CTX_new_id(
@@ -27,7 +24,7 @@ impl<KT: KeyType> From<EvpId> for EvpCtx<KT> {
     }
 }
 
-impl<KT: KeyType> TryFrom<&str> for EvpCtx<KT> {
+impl TryFrom<&str> for EvpCtx {
     type Error = ErrorStack;
 
     fn try_from(value: &str) -> Result<Self, Self::Error> {
@@ -42,7 +39,7 @@ impl<KT: KeyType> TryFrom<&str> for EvpCtx<KT> {
     }
 }
 
-impl<KT: KeyType> TryFrom<&EvpPkey<Private>> for EvpCtx<KT> {
+impl TryFrom<&EvpPkey<Private>> for EvpCtx {
     type Error = ErrorStack;
 
     fn try_from(value: &EvpPkey<Private>) -> Result<Self, Self::Error> {

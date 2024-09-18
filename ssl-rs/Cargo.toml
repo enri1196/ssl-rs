@@ -16,3 +16,6 @@ num-derive = "0.4.2"
 num-traits = "0.2.19"
 
 ssl-sys = { path = "../ssl-sys" }
+
+[dev-dependencies]
+hex-literal = "0.3"

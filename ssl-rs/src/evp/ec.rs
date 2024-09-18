@@ -127,14 +127,14 @@ pub struct EcKey<KT: KeyType>(EvpPkey<KT>);
 
 impl EcKey<Private> {
     pub fn new_ec(curve: CurveNid) -> Result<Self, ErrorStack> {
-        let ctx = EvpCtx::<Private>::from(EvpId::EcId);
+        let ctx = EvpCtx::from(EvpId::EcId);
         let key = std::str::from_utf8(OSSL_PKEY_PARAM_GROUP_NAME.to_bytes()).unwrap();
         let params = OsslParamBld::new().push_str(key, curve.as_str()).build();
         Self::try_from((ctx, params.as_ref()))
     }
 
     pub fn new_raw_ec(curve: CurveRawNid) -> Result<Self, ErrorStack> {
-        let ctx = EvpCtx::<Private>::from(curve.to_evp_id());
+        let ctx = EvpCtx::from(curve.to_evp_id());
         let key = std::str::from_utf8(OSSL_PKEY_PARAM_GROUP_NAME.to_bytes()).unwrap();
         let params = OsslParamBld::new().push_str(key, curve.as_str()).build();
         Self::try_from((ctx, params.as_ref()))
@@ -145,10 +145,10 @@ impl EcKey<Private> {
     }
 }
 
-impl TryFrom<(EvpCtx<Private>, &OsslParamRef)> for EcKey<Private> {
+impl TryFrom<(EvpCtx, &OsslParamRef)> for EcKey<Private> {
     type Error = ErrorStack;
 
-    fn try_from((ctx, params): (EvpCtx<Private>, &OsslParamRef)) -> Result<Self, Self::Error> {
+    fn try_from((ctx, params): (EvpCtx, &OsslParamRef)) -> Result<Self, Self::Error> {
         EvpPkey::try_from((ctx, params)).map(Self)
     }
 }
