@@ -1,17 +1,17 @@
-use foreign_types::ForeignType;
+use foreign_types::ForeignTypeRef;
 use ssl_sys::*;
 
 use crate::error::ErrorStack;
 
-use super::{evp_ctx::EvpCtx, EvpPkey, Private, Public};
+use super::{evp_ctx::EvpCtx, EvpPkeyRef, Private, Public};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Ecdh(Vec<u8>);
 
 impl Ecdh {
     pub fn generate_secret(
-        first_pkey: &EvpPkey<Private>,
-        second_pkey: &EvpPkey<Public>,
+        first_pkey: &EvpPkeyRef<Private>,
+        second_pkey: &EvpPkeyRef<Public>,
     ) -> Result<Self, ErrorStack> {
         unsafe {
             let derive_ctx = EvpCtx::try_from(first_pkey)?;
