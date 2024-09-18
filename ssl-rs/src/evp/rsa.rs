@@ -46,6 +46,10 @@ impl RsaKey<Private> {
     pub fn get_public(&self) -> Result<RsaKey<Public>, ErrorStack> {
         RsaKey::<Public>::try_from(self)
     }
+
+    pub fn sign(&self, tbs: &[u8]) -> Result<Vec<u8>, ErrorStack> {
+        self.0.sign(tbs)
+    }
 }
 
 impl TryFrom<(EvpCtx, &OsslParamRef)> for RsaKey<Private> {

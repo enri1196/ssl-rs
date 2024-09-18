@@ -143,6 +143,10 @@ impl EcKey<Private> {
     pub fn get_public(&self) -> Result<EcKey<Public>, ErrorStack> {
         EcKey::<Public>::try_from(self)
     }
+
+    pub fn sign(&self, tbs: &[u8]) -> Result<Vec<u8>, ErrorStack> {
+        self.0.sign(tbs)
+    }
 }
 
 impl TryFrom<(EvpCtx, &OsslParamRef)> for EcKey<Private> {
