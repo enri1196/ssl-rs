@@ -67,7 +67,7 @@ impl EvpPkey<Private> {
 
     pub fn sign(&self, tbs: &[u8]) -> Result<Vec<u8>, ErrorStack> {
         unsafe {
-            let ctx = EvpCtx::try_from(self)?;
+            let ctx = EvpCtx::try_from(self.as_ref())?;
             crate::check_code(EVP_PKEY_sign_init(ctx.as_ptr()))?;
             let mut siglen = 0;
             crate::check_code(EVP_PKEY_sign(
@@ -86,6 +86,26 @@ impl EvpPkey<Private> {
                 tbs.len(),
             ))?;
             Ok(sig)
+        }
+    }
+}
+
+impl EvpPkey<Public> {
+    pub fn verify_sign(&self, tbs: &[u8], signature: &[u8]) -> Result<bool, ErrorStack> {
+        unsafe {
+            let ctx = EvpCtx::try_from(self.as_ref())?;
+            crate::check_code(EVP_PKEY_verify_init(ctx.as_ptr()))?;
+
+            let result = EVP_PKEY_verify(
+                ctx.as_ptr(),
+                signature.as_ptr(),
+                signature.len(),
+                tbs.as_ptr(),
+                tbs.len(),
+            );
+            crate::check_code(result)?;
+
+            Ok(result == 1)
         }
     }
 }
