@@ -1,9 +1,9 @@
-use foreign_types::{foreign_type, ForeignType};
+use foreign_types::{foreign_type, ForeignType, ForeignTypeRef};
 use std::ffi::c_char;
 
 use crate::{error::ErrorStack, ssl::*};
 
-use super::{EvpId, EvpPkey, Private};
+use super::{EvpId, EvpPkeyRef, Private, Public};
 
 foreign_type! {
     pub unsafe type EvpCtx {
@@ -39,10 +39,25 @@ impl TryFrom<&str> for EvpCtx {
     }
 }
 
-impl TryFrom<&EvpPkey<Private>> for EvpCtx {
+impl TryFrom<&EvpPkeyRef<Private>> for EvpCtx {
     type Error = ErrorStack;
 
-    fn try_from(value: &EvpPkey<Private>) -> Result<Self, Self::Error> {
+    fn try_from(value: &EvpPkeyRef<Private>) -> Result<Self, Self::Error> {
+        unsafe {
+            crate::check_ptr(EVP_PKEY_CTX_new_from_pkey(
+                std::ptr::null_mut(),
+                value.as_ptr(),
+                std::ptr::null_mut(),
+            ))
+            .map(|v| Self::from_ptr(v))
+        }
+    }
+}
+
+impl TryFrom<&EvpPkeyRef<Public>> for EvpCtx {
+    type Error = ErrorStack;
+
+    fn try_from(value: &EvpPkeyRef<Public>) -> Result<Self, Self::Error> {
         unsafe {
             crate::check_ptr(EVP_PKEY_CTX_new_from_pkey(
                 std::ptr::null_mut(),
