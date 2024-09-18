@@ -27,7 +27,10 @@ pub enum DigestType {
     SHA512,
     RIPEMD160,
     Whirlpool,
+    SHA3224,
     SHA3256,
+    SHA3384,
+    SHA3512,
     BLAKE2b512,
 }
 
@@ -42,7 +45,10 @@ impl DigestType {
             DigestType::SHA512 => EVP_sha512(),
             DigestType::RIPEMD160 => EVP_ripemd160(),
             DigestType::Whirlpool => EVP_whirlpool(),
+            DigestType::SHA3224 => EVP_sha3_224(),
             DigestType::SHA3256 => EVP_sha3_256(),
+            DigestType::SHA3384 => EVP_sha3_384(),
+            DigestType::SHA3512 => EVP_sha3_512(),
             DigestType::BLAKE2b512 => EVP_blake2b512(),
         }
     }
