@@ -46,7 +46,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .allowlist_var("KU_.*")
         .allowlist_var("XKU_.*")
         .allowlist_var("GEN_.*")
-        // .allowlist_var("V_ASN1_.*")
+        .allowlist_var("V_ASN1_.*")
         .generate_cstr(true)
         .generate()
         .expect("Unable to generate bindings");
