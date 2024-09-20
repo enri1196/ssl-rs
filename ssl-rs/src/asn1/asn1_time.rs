@@ -13,13 +13,25 @@ foreign_type! {
     }
 }
 
-impl PartialEq for Asn1TimeRef {
+impl PartialEq for Asn1Time {
+    fn eq(&self, other: &Self) -> bool {
+        self.as_ref().eq(&other.as_ref())
+    }
+}
+
+impl PartialEq for &Asn1TimeRef {
     fn eq(&self, other: &Self) -> bool {
         unsafe { ASN1_TIME_compare(self.as_ptr(), other.as_ptr()) == 0 }
     }
 }
 
-impl PartialOrd for Asn1TimeRef {
+impl PartialOrd for Asn1Time {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.as_ref().partial_cmp(&other.as_ref())
+    }
+}
+
+impl PartialOrd for &Asn1TimeRef {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         unsafe {
             match ASN1_TIME_compare(self.as_ptr(), other.as_ptr()) {
@@ -43,7 +55,7 @@ impl Asn1TimeRef {
     }
 }
 
-impl Display for Asn1TimeRef {
+impl Display for &Asn1TimeRef {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         unsafe {
             let bio = SslBio::memory();
