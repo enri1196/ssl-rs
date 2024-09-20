@@ -29,6 +29,7 @@
 #include <openssl/ocsperr.h>
 #include <openssl/opensslv.h>
 #include <openssl/param_build.h>
+#include <openssl/params.h>
 #include <openssl/pem.h>
 #include <openssl/pem2.h>
 #include <openssl/prov_ssl.h>
