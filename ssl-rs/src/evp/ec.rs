@@ -112,7 +112,7 @@ impl CurveRawNid {
         }
     }
 
-    fn to_evp_id(&self) -> EvpId {
+    fn to_evp_id(self) -> EvpId {
         match self {
             CurveRawNid::X25519 => EvpId::X25519Id,
             CurveRawNid::X448 => EvpId::X448Id,

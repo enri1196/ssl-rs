@@ -24,15 +24,19 @@ impl BigNum {
 
 impl BigNumRef {
     pub fn is_zero(&self) -> bool {
-        unsafe { BN_is_zero(self.as_ptr() as *const _) == 0 }
+        unsafe { BN_is_zero(self.as_ptr() as *const _) == 1 }
     }
 
     pub fn is_one(&self) -> bool {
-        unsafe { BN_is_one(self.as_ptr() as *const _) == 0 }
+        unsafe { BN_is_one(self.as_ptr() as *const _) == 1 }
     }
 
     pub fn is_odd(&self) -> bool {
-        unsafe { BN_is_odd(self.as_ptr() as *const _) == 0 }
+        unsafe { BN_is_odd(self.as_ptr() as *const _) == 1 }
+    }
+
+    pub fn is_negative(&self) -> bool {
+        unsafe { BN_is_negative(self.as_ptr() as *const _) == 1 }
     }
 
     pub fn len(&self) -> usize {
@@ -66,13 +70,19 @@ impl TryFrom<&Asn1IntegerRef> for BigNum {
     }
 }
 
-impl Display for BigNumRef {
+impl Display for BigNum {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.as_ref().fmt(f)
+    }
+}
+
+impl Display for &BigNumRef {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         unsafe {
             let bn = BN_bn2dec(self.as_ptr() as *const _);
             let c_bn = CString::from_raw(bn);
             let s = String::from_utf8(c_bn.into_bytes_with_nul())
-                .map_err(|_| std::fmt::Error::default())?;
+                .map_err(|_| std::fmt::Error)?;
             write!(f, "{s}")
         }
     }
@@ -80,11 +90,27 @@ impl Display for BigNumRef {
 
 impl PartialEq for BigNum {
     fn eq(&self, other: &Self) -> bool {
+        self.as_ref().eq(&other.as_ref())
+    }
+}
+
+impl Eq for BigNum {}
+
+impl PartialEq for &BigNumRef {
+    fn eq(&self, other: &Self) -> bool {
         unsafe { BN_cmp(self.as_ptr(), other.as_ptr()) == 0 }
     }
 }
 
+impl Eq for &BigNumRef {}
+
 impl PartialOrd for BigNum {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        self.as_ref().partial_cmp(&other.as_ref())
+    }
+}
+
+impl PartialOrd for &BigNumRef {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         unsafe {
             match BN_cmp(self.as_ptr(), other.as_ptr()) {

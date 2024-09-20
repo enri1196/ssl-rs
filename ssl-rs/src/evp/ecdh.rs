@@ -28,12 +28,12 @@ impl Ecdh {
             ))?;
 
             let mut secret = Vec::with_capacity(secret_len);
-            secret.set_len(secret_len);
             crate::check_code(EVP_PKEY_derive(
                 derive_ctx.as_ptr(),
                 secret.as_mut_ptr(),
                 &mut secret_len,
             ))?;
+            secret.set_len(secret_len);
 
             Ok(Self(secret))
         }
@@ -41,6 +41,10 @@ impl Ecdh {
 
     pub fn len(&self) -> usize {
         self.0.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
     }
 
     pub fn to_bytes(&self) -> &[u8] {

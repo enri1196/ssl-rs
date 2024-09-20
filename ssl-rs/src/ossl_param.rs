@@ -19,6 +19,12 @@ foreign_type! {
     }
 }
 
+impl Default for OsslParamBld {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl OsslParamBld {
     pub fn new() -> OsslParamBld {
         unsafe { OsslParamBld::from_ptr(OSSL_PARAM_BLD_new()) }

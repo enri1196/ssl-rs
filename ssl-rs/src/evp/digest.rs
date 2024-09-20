@@ -35,7 +35,7 @@ pub enum DigestType {
 }
 
 impl DigestType {
-    unsafe fn to_md(&self) -> *const EVP_MD {
+    unsafe fn to_md(self) -> *const EVP_MD {
         match self {
             DigestType::MD5 => EVP_md5(),
             DigestType::SHA1 => EVP_sha1(),

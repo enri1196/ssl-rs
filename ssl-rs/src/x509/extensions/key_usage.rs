@@ -55,7 +55,7 @@ impl KeyUsage {
         }
     }
 
-    pub fn add(mut self, val: KeyUsageValue) -> Self {
+    pub fn append(mut self, val: KeyUsageValue) -> Self {
         self.0 |= val as u32;
         self
     }
@@ -67,7 +67,7 @@ impl From<&[KeyUsageValue]> for KeyUsage {
         for val in value {
             ku.0 |= *val as u32;
         }
-        return ku;
+        ku
     }
 }
 

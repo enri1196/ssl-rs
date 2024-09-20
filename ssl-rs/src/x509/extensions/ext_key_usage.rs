@@ -37,7 +37,7 @@ impl BitOr<ExtKeyUsageValue> for u32 {
     type Output = u32;
 
     fn bitor(self, rhs: ExtKeyUsageValue) -> Self::Output {
-        self as u32 | rhs as u32
+        self | rhs as u32
     }
 }
 
@@ -63,7 +63,7 @@ impl ExtKeyUsage {
         }
     }
 
-    pub fn add(mut self, val: ExtKeyUsageValue) -> Self {
+    pub fn append(mut self, val: ExtKeyUsageValue) -> Self {
         self.0 |= val;
         self
     }
@@ -75,7 +75,7 @@ impl From<&[ExtKeyUsageValue]> for ExtKeyUsage {
         for val in value {
             ku.0 |= *val as u32;
         }
-        return ku;
+        ku
     }
 }
 

@@ -50,6 +50,12 @@ impl Display for X509NameRef {
 
 pub struct X509NameBuilder(X509Name);
 
+impl Default for X509NameBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl X509NameBuilder {
     pub fn new() -> Self {
         Self(X509Name::default())
