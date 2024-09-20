@@ -43,7 +43,7 @@ impl OsslParamBld {
             crate::check_code(OSSL_PARAM_BLD_push_utf8_string(
                 self.as_ptr(),
                 key.as_ptr() as *const c_char,
-                value.as_ptr(),
+                value.as_ptr() as *const c_char,
                 value.len(),
             ))
             .expect("OSSL_PARAM_BLD_push_utf8_string failed");
