@@ -1,12 +1,16 @@
 use std::{env, path::PathBuf};
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() {
     println!("cargo:rerun-if-changed=src/wrapped_ssl.h");
     println!("cargo:rustc-link-lib=dylib=crypto");
     println!("cargo:rustc-link-lib=dylib=ssl");
 
     let bindings = bindgen::Builder::default()
-        // .clang_arg("-I/opt/homebrew/Cellar/openssl@3/3.3.2/include")
+        // .clang_args(&[
+        //     "-L/opt/homebrew/Cellar/openssl@3/3.3.2/lib",
+        //     "-I/opt/homebrew/Cellar/openssl@3/3.3.2/include",
+        //     "-Wl,-rpath,/opt/homebrew/Cellar/openssl@3/3.3.2/lib"
+        // ])
         .header("src/wrapped_ssl.h")
         // ALLOW FUNCTION NAMES
         .allowlist_function("ASN1_.*")
@@ -55,6 +59,4 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     bindings
         .write_to_file(out_path.join("bindings.rs"))
         .expect("Couldn't write bindings!");
-
-    Ok(())
 }

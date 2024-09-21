@@ -1,6 +1,7 @@
 pub mod digest;
 pub mod ec;
 pub mod ecdh;
+pub mod mac_alg;
 mod evp_ctx;
 pub mod rsa;
 
