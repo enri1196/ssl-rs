@@ -3,6 +3,7 @@ pub mod ec;
 pub mod ecdh;
 pub mod mac_alg;
 mod evp_ctx;
+pub mod cipher;
 pub mod rsa;
 
 use num_derive::FromPrimitive;
