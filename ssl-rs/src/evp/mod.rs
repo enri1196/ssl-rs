@@ -80,8 +80,11 @@ impl EvpPkeyRef<Private> {
     pub fn sign(&self, tbs: &[u8]) -> Result<Vec<u8>, ErrorStack> {
         unsafe {
             let ctx = EvpCtx::try_from(self)?;
+            println!("SIGN CTX");
             crate::check_code(EVP_PKEY_sign_init(ctx.as_ptr()))?;
+            println!("SIGNINIT");
             let mut siglen = 0;
+            println!("SIGLEN IS ZERO: {siglen}");
             crate::check_code(EVP_PKEY_sign(
                 ctx.as_ptr(),
                 std::ptr::null_mut(),
@@ -89,6 +92,7 @@ impl EvpPkeyRef<Private> {
                 tbs.as_ptr(),
                 tbs.len(),
             ))?;
+            println!("SIGLEN: {siglen}");
             let mut sig = Vec::with_capacity(siglen);
             crate::check_code(EVP_PKEY_sign(
                 ctx.as_ptr(),
@@ -97,6 +101,8 @@ impl EvpPkeyRef<Private> {
                 tbs.as_ptr(),
                 tbs.len(),
             ))?;
+            sig.set_len(siglen);
+            sig.truncate(siglen);
             Ok(sig)
         }
     }
@@ -131,6 +137,22 @@ impl EvpPkeyRef<Public> {
 impl<KT: KeyType> Default for EvpPkey<KT> {
     fn default() -> Self {
         unsafe { Self::from_ptr(EVP_PKEY_new()) }
+    }
+}
+
+impl TryFrom<EvpCtx> for EvpPkey<Private> {
+    type Error = ErrorStack;
+
+    fn try_from(ctx: EvpCtx) -> Result<Self, Self::Error> {
+        unsafe {
+            let m_key = EvpPkey::<Private>::default();
+            crate::check_code(EVP_PKEY_keygen_init(ctx.as_ptr()))?;
+            crate::check_code(EVP_PKEY_generate(
+                ctx.as_ptr(),
+                &mut m_key.as_ptr() as *mut *mut _,
+            ))?;
+            Ok(m_key)
+        }
     }
 }
 
@@ -199,11 +221,11 @@ impl Display for EvpPkeyRef<Public> {
 
 #[cfg(test)]
 mod test {
-    use crate::evp::{
+    use crate::{error::ErrorStack, evp::{
         ec::{CurveNid, CurveRawNid, EcKey},
         rsa::{RsaKey, RsaSize},
         Private,
-    };
+    }};
 
     #[test]
     pub fn test_rsa() {
@@ -224,11 +246,39 @@ mod test {
     }
 
     #[test]
-    pub fn test_raw_ec() {
+    pub fn test_raw_ec1() {
         let key = EcKey::<Private>::new_raw_ec(CurveRawNid::X25519).unwrap();
         println!("{}", key.to_string());
         println!("{}", key.get_public().unwrap().to_string());
         // assert_eq!(408, key.id().get_raw());
         // assert_eq!(72, key.size());
+    }
+
+    #[test]
+    pub fn test_raw_ec2() {
+        let key = EcKey::<Private>::new_raw_ec(CurveRawNid::ED25519).unwrap();
+        println!("{}", key.to_string());
+        println!("{}", key.get_public().unwrap().to_string());
+        // assert_eq!(408, key.id().get_raw());
+        // assert_eq!(72, key.size());
+    }
+
+    #[test]
+    fn test_sign_and_verify_ed25519() -> Result<(), ErrorStack> {
+        let ec_key = EcKey::<Private>::new_raw_ec(CurveRawNid::ED25519)
+            .expect("Failed to create EC Private Key");
+
+        let message = b"The quick brown fox jumps over the lazy dog";
+
+        let signature = ec_key.sign(message)
+            .expect("Failed to sign the message");
+
+        let evp_pkey_public = ec_key.get_public()
+            .expect("Failed to extract public key");
+
+        evp_pkey_public.verify_sign(message, &signature)
+            .expect("Failed to verify the signature");
+
+        Ok(())
     }
 }
