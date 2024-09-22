@@ -17,7 +17,7 @@ impl Default for EvpMdCtx {
 }
 
 #[derive(Debug, Default, Clone, Copy)]
-pub enum DigestType {
+pub enum DigestAlgorithm {
     MD5,
     SHA1,
     SHA224,
@@ -34,27 +34,57 @@ pub enum DigestType {
     BLAKE2b512,
 }
 
-impl DigestType {
+impl From<DigestAlgorithm> for &'static str {
+    fn from(value: DigestAlgorithm) -> Self {
+        value.as_str()
+    }
+}
+
+
+impl DigestAlgorithm {
     unsafe fn to_md(self) -> *const EVP_MD {
         match self {
-            DigestType::MD5 => EVP_md5(),
-            DigestType::SHA1 => EVP_sha1(),
-            DigestType::SHA224 => EVP_sha224(),
-            DigestType::SHA256 => EVP_sha256(),
-            DigestType::SHA384 => EVP_sha384(),
-            DigestType::SHA512 => EVP_sha512(),
-            DigestType::RIPEMD160 => EVP_ripemd160(),
-            DigestType::Whirlpool => EVP_whirlpool(),
-            DigestType::SHA3224 => EVP_sha3_224(),
-            DigestType::SHA3256 => EVP_sha3_256(),
-            DigestType::SHA3384 => EVP_sha3_384(),
-            DigestType::SHA3512 => EVP_sha3_512(),
-            DigestType::BLAKE2b512 => EVP_blake2b512(),
+            Self::MD5 => EVP_md5(),
+            Self::SHA1 => EVP_sha1(),
+            Self::SHA224 => EVP_sha224(),
+            Self::SHA256 => EVP_sha256(),
+            Self::SHA384 => EVP_sha384(),
+            Self::SHA512 => EVP_sha512(),
+            Self::RIPEMD160 => EVP_ripemd160(),
+            Self::Whirlpool => EVP_whirlpool(),
+            Self::SHA3224 => EVP_sha3_224(),
+            Self::SHA3256 => EVP_sha3_256(),
+            Self::SHA3384 => EVP_sha3_384(),
+            Self::SHA3512 => EVP_sha3_512(),
+            Self::BLAKE2b512 => EVP_blake2b512(),
+        }
+    }
+
+    pub(crate) const fn as_str(&self) -> &'static str {
+        // SAFETY: all the Cstrings are compile time constants known to be safe
+        unsafe { self.inner_as_str() }
+    }
+
+    const unsafe fn inner_as_str(&self) -> &'static str {
+        match self {
+            Self::MD5 => std::str::from_utf8_unchecked(SN_md5.to_bytes()),
+            Self::SHA1 => std::str::from_utf8_unchecked(SN_sha1.to_bytes()),
+            Self::SHA224 => std::str::from_utf8_unchecked(SN_sha224.to_bytes()),
+            Self::SHA256 => std::str::from_utf8_unchecked(SN_sha256.to_bytes()),
+            Self::SHA384 => std::str::from_utf8_unchecked(SN_sha384.to_bytes()),
+            Self::SHA512 => std::str::from_utf8_unchecked(SN_sha512.to_bytes()),
+            Self::RIPEMD160 => std::str::from_utf8_unchecked(SN_ripemd160.to_bytes()),
+            Self::Whirlpool => std::str::from_utf8_unchecked(SN_whirlpool.to_bytes()),
+            Self::SHA3224 => std::str::from_utf8_unchecked(SN_sha3_224.to_bytes()),
+            Self::SHA3256 => std::str::from_utf8_unchecked(SN_sha3_256.to_bytes()),
+            Self::SHA3384 => std::str::from_utf8_unchecked(SN_sha3_384.to_bytes()),
+            Self::SHA3512 => std::str::from_utf8_unchecked(SN_sha3_512.to_bytes()),
+            Self::BLAKE2b512 => std::str::from_utf8_unchecked(SN_blake2b512.to_bytes()),
         }
     }
 }
 
-pub fn hash(message: &[u8], digest: DigestType) -> Result<Vec<u8>, ErrorStack> {
+pub fn hash(message: &[u8], digest: DigestAlgorithm) -> Result<Vec<u8>, ErrorStack> {
     unsafe {
         let mdctx = EvpMdCtx::default();
         crate::check_code(EVP_DigestInit_ex(
@@ -89,7 +119,7 @@ mod tests {
         let message = b"hello world";
         let expected_hash =
             hex!("b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9");
-        let result = hash(message.as_ref(), DigestType::SHA256).expect("Hash computation failed");
+        let result = hash(message.as_ref(), DigestAlgorithm::SHA256).expect("Hash computation failed");
 
         assert_eq!(
             result, expected_hash,
