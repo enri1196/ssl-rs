@@ -120,6 +120,20 @@ impl CurveRawNid {
             CurveRawNid::ED448 => EvpId::Ed448Id,
         }
     }
+
+    pub(crate) fn raw_key_type(&self) -> RawKeyType {
+        match self {
+            CurveRawNid::X25519 | CurveRawNid::X448 => RawKeyType::KeyExchange,
+            CurveRawNid::ED25519 | CurveRawNid::ED448 => RawKeyType::Signature,
+        }
+    }
+}
+
+// Define KeyType to distinguish key purposes
+#[derive(Debug, Clone, Copy)]
+pub(crate) enum RawKeyType {
+    KeyExchange,
+    Signature,
 }
 
 #[derive(Clone)]
@@ -134,10 +148,22 @@ impl EcKey<Private> {
     }
 
     pub fn new_raw_ec(curve: CurveRawNid) -> Result<Self, ErrorStack> {
+        match curve.raw_key_type() {
+            RawKeyType::KeyExchange => Self::generate_key_exchange(curve),
+            RawKeyType::Signature => Self::generate_key_signature(curve),
+        }
+    }
+
+    fn generate_key_exchange(curve: CurveRawNid) -> Result<Self, ErrorStack> {
         let ctx = EvpCtx::from(curve.to_evp_id());
         let key = std::str::from_utf8(OSSL_PKEY_PARAM_GROUP_NAME.to_bytes()).unwrap();
         let params = OsslParamBld::new().push_str(key, curve.as_str()).build();
         Self::try_from((ctx, params.as_ref()))
+    }
+
+    fn generate_key_signature(curve: CurveRawNid) -> Result<Self, ErrorStack> {
+        let ctx = EvpCtx::from(curve.to_evp_id());
+        Self::try_from(ctx)
     }
 
     pub fn get_public(&self) -> Result<EcKey<Public>, ErrorStack> {
@@ -146,6 +172,20 @@ impl EcKey<Private> {
 
     pub fn sign(&self, tbs: &[u8]) -> Result<Vec<u8>, ErrorStack> {
         self.0.sign(tbs)
+    }
+}
+
+impl EcKey<Public> {
+    pub fn verify_sign(&self, tbs: &[u8], signature: &[u8]) -> Result<bool, ErrorStack> {
+        self.0.verify_sign(tbs, signature)
+    }
+}
+
+impl TryFrom<EvpCtx> for EcKey<Private> {
+    type Error = ErrorStack;
+
+    fn try_from(ctx: EvpCtx) -> Result<Self, Self::Error> {
+        EvpPkey::try_from(ctx).map(Self)
     }
 }
 
