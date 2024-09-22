@@ -52,6 +52,12 @@ impl RsaKey<Private> {
     }
 }
 
+impl RsaKey<Public> {
+    pub fn verify_sign(&self, tbs: &[u8], signature: &[u8]) -> Result<bool, ErrorStack> {
+        self.0.verify_sign(tbs, signature)
+    }
+}
+
 impl TryFrom<(EvpCtx, &OsslParamRef)> for RsaKey<Private> {
     type Error = ErrorStack;
 
