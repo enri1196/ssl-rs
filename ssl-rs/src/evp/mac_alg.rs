@@ -147,13 +147,7 @@ mod tests {
     fn test_compute_hmac() {
         // Define the key, data, and expected HMAC as byte arrays
 
-        let key: Vec<u8> = vec![
-            0x0b, 0x0b, 0x0b, 0x0b,
-            0x0b, 0x0b, 0x0b, 0x0b,
-            0x0b, 0x0b, 0x0b, 0x0b,
-            0x0b, 0x0b, 0x0b, 0x0b,
-            0x0b, 0x0b, 0x0b, 0x0b,
-        ];
+        let key: Vec<u8> = vec![0x0b; 20];
 
         // Data: "Hi There"
         let data: Vec<u8> = b"Hi There".to_vec();
