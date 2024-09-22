@@ -4,6 +4,8 @@ use foreign_types::{foreign_type, ForeignType};
 
 use crate::{error::ErrorStack, ossl_param::OsslParamBld, ssl::*};
 
+use super::{digest::DigestAlgorithm, cipher::Cipher};
+
 foreign_type! {
     pub unsafe type EvpMac {
         type CType = EVP_MAC;
@@ -14,12 +16,25 @@ foreign_type! {
 #[derive(Debug, Clone, Copy)]
 enum MacAlgorithm {
     CMAC,
+    HMAC,
 }
 
 impl From<MacAlgorithm> for &'static str {
     fn from(value: MacAlgorithm) -> Self {
-        match value {
-            MacAlgorithm::CMAC => "CMAC\0",
+        value.as_str()
+    }
+}
+
+impl MacAlgorithm {
+    pub(crate) const fn as_str(&self) -> &'static str {
+        // SAFETY: all the Cstrings are compile time constants known to be safe
+        unsafe { self.inner_as_str() }
+    }
+
+    const unsafe fn inner_as_str(&self) -> &'static str {
+        match self {
+            Self::CMAC => std::str::from_utf8_unchecked(SN_cmac.to_bytes()),
+            Self::HMAC => std::str::from_utf8_unchecked(SN_hmac.to_bytes()),
         }
     }
 }
@@ -51,7 +66,28 @@ impl EvpMac {
             let ctx = EvpMacCtx::from(MacAlgorithm::CMAC);
 
             let params = OsslParamBld::new()
-                .push_str("cipher\0", "AES-128-CBC\0")
+                .push_str("cipher\0", Cipher::AES128CBC.as_str())
+                .build();
+
+            EVP_MAC_init(ctx.as_ptr(), key.as_ptr(), key.len(), params.as_ptr());
+
+            EVP_MAC_update(ctx.as_ptr(), data.as_ptr(), data.len());
+
+            let mut cmac_value = Vec::with_capacity(EVP_MAX_MD_SIZE as usize);
+            let mut cmac_len: usize = 0;
+            EVP_MAC_final(ctx.as_ptr(), cmac_value.as_mut_ptr(), &mut cmac_len, EVP_MAX_MD_SIZE as usize);
+            cmac_value.set_len(cmac_len);
+
+            Ok(cmac_value)
+        }
+    }
+
+    pub fn compute_hmac(key: &[u8], data: &[u8]) -> Result<Vec<u8>, ErrorStack> {
+        unsafe {
+            let ctx = EvpMacCtx::from(MacAlgorithm::HMAC);
+
+            let params = OsslParamBld::new()
+                .push_str("digest\0", DigestAlgorithm::SHA256.as_str())
                 .build();
 
             EVP_MAC_init(ctx.as_ptr(), key.as_ptr(), key.len(), params.as_ptr());
@@ -104,6 +140,44 @@ mod tests {
         assert_eq!(
             cmac_result, expected_cmac,
             "Computed CMAC does not match the expected value"
+        );
+    }
+
+    #[test]
+    fn test_compute_hmac() {
+        // Define the key, data, and expected HMAC as byte arrays
+
+        let key: Vec<u8> = vec![
+            0x0b, 0x0b, 0x0b, 0x0b,
+            0x0b, 0x0b, 0x0b, 0x0b,
+            0x0b, 0x0b, 0x0b, 0x0b,
+            0x0b, 0x0b, 0x0b, 0x0b,
+            0x0b, 0x0b, 0x0b, 0x0b,
+        ];
+
+        // Data: "Hi There"
+        let data: Vec<u8> = b"Hi There".to_vec();
+
+        // Expected HMAC-SHA256
+        let expected_hmac: Vec<u8> = vec![
+            0xb0, 0x34, 0x4c, 0x61,
+            0xd8, 0xdb, 0x38, 0x53,
+            0x5c, 0xa8, 0xaf, 0xce,
+            0xaf, 0x0b, 0xf1, 0x2b,
+            0x88, 0x1d, 0xc2, 0x00,
+            0xc9, 0x83, 0x3d, 0xa7,
+            0x26, 0xe9, 0x37, 0x6c,
+            0x2e, 0x32, 0xcf, 0xf7,
+        ];
+
+        // Compute the HMAC using the provided function
+        let hmac_result = EvpMac::compute_hmac(&key, &data)
+            .expect("HMAC computation failed");
+
+        // Verify that the computed HMAC matches the expected value
+        assert_eq!(
+            hmac_result, expected_hmac,
+            "Computed HMAC does not match the expected value"
         );
     }
 }
