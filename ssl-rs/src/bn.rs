@@ -81,8 +81,7 @@ impl Display for &BigNumRef {
         unsafe {
             let bn = BN_bn2dec(self.as_ptr() as *const _);
             let c_bn = CString::from_raw(bn);
-            let s = String::from_utf8(c_bn.into_bytes_with_nul())
-                .map_err(|_| std::fmt::Error)?;
+            let s = String::from_utf8(c_bn.into_bytes_with_nul()).map_err(|_| std::fmt::Error)?;
             write!(f, "{s}")
         }
     }

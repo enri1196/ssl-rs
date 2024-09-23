@@ -26,7 +26,7 @@ impl Asn1String {
 
     pub fn get_type(&self) -> Asn1Type {
         unsafe {
-            // SAFETY: this should not panic since the contained type should 
+            // SAFETY: this should not panic since the contained type should
             // always be a valid asn1 type
             Asn1Type::from_i32(ASN1_STRING_type(self.as_ptr())).unwrap_unchecked()
         }

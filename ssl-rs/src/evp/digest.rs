@@ -40,7 +40,6 @@ impl From<DigestAlgorithm> for &'static str {
     }
 }
 
-
 impl DigestAlgorithm {
     unsafe fn to_md(self) -> *const EVP_MD {
         match self {
@@ -119,7 +118,8 @@ mod tests {
         let message = b"hello world";
         let expected_hash =
             hex!("b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9");
-        let result = hash(message.as_ref(), DigestAlgorithm::SHA256).expect("Hash computation failed");
+        let result =
+            hash(message.as_ref(), DigestAlgorithm::SHA256).expect("Hash computation failed");
 
         assert_eq!(
             result, expected_hash,
