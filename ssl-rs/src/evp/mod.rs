@@ -1,9 +1,9 @@
+pub mod cipher;
 pub mod digest;
 pub mod ec;
 pub mod ecdh;
-pub mod mac_alg;
 mod evp_ctx;
-pub mod cipher;
+pub mod mac_alg;
 pub mod rsa;
 
 use num_derive::FromPrimitive;
@@ -79,30 +79,31 @@ impl EvpPkeyRef<Private> {
 
     pub fn sign(&self, tbs: &[u8]) -> Result<Vec<u8>, ErrorStack> {
         unsafe {
-            let ctx = EvpCtx::try_from(self)?;
-            println!("SIGN CTX");
-            crate::check_code(EVP_PKEY_sign_init(ctx.as_ptr()))?;
-            println!("SIGNINIT");
+            let mdctx = EvpMdCtx::default();
+            crate::check_code(EVP_DigestSignInit(
+                mdctx.as_ptr(),
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+                self.as_ptr(),
+            ))?;
             let mut siglen = 0;
-            println!("SIGLEN IS ZERO: {siglen}");
-            crate::check_code(EVP_PKEY_sign(
-                ctx.as_ptr(),
+            crate::check_code(EVP_DigestSign(
+                mdctx.as_ptr(),
                 std::ptr::null_mut(),
                 &mut siglen,
                 tbs.as_ptr(),
                 tbs.len(),
             ))?;
-            println!("SIGLEN: {siglen}");
-            let mut sig = Vec::with_capacity(siglen);
-            crate::check_code(EVP_PKEY_sign(
-                ctx.as_ptr(),
+            let mut sig = Vec::with_capacity(siglen as usize);
+            crate::check_code(EVP_DigestSign(
+                mdctx.as_ptr(),
                 sig.as_mut_ptr(),
                 &mut siglen,
                 tbs.as_ptr(),
                 tbs.len(),
             ))?;
             sig.set_len(siglen);
-            sig.truncate(siglen);
             Ok(sig)
         }
     }
@@ -117,19 +118,22 @@ impl EvpPkey<Public> {
 impl EvpPkeyRef<Public> {
     pub fn verify_sign(&self, tbs: &[u8], signature: &[u8]) -> Result<bool, ErrorStack> {
         unsafe {
-            let ctx = EvpCtx::try_from(self)?;
-            crate::check_code(EVP_PKEY_verify_init(ctx.as_ptr()))?;
-
-            let result = EVP_PKEY_verify(
-                ctx.as_ptr(),
+            let vctx = EvpMdCtx::default();
+            crate::check_code(EVP_DigestVerifyInit(
+                vctx.as_ptr(),
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+                self.as_ptr(),
+            ))?;
+            let verify = crate::check_code(EVP_DigestVerify(
+                vctx.as_ptr(),
                 signature.as_ptr(),
                 signature.len(),
                 tbs.as_ptr(),
                 tbs.len(),
-            );
-            crate::check_code(result)?;
-
-            Ok(result == 1)
+            ))?;
+            Ok(verify == 1)
         }
     }
 }
@@ -219,13 +223,29 @@ impl Display for EvpPkeyRef<Public> {
     }
 }
 
+foreign_type! {
+    pub unsafe type EvpMdCtx : Send + Sync {
+        type CType = EVP_MD_CTX;
+        fn drop = EVP_MD_CTX_free;
+    }
+}
+
+impl Default for EvpMdCtx {
+    fn default() -> Self {
+        unsafe { Self::from_ptr(EVP_MD_CTX_new()) }
+    }
+}
+
 #[cfg(test)]
 mod test {
-    use crate::{error::ErrorStack, evp::{
-        ec::{CurveNid, CurveRawNid, EcKey},
-        rsa::{RsaKey, RsaSize},
-        Private,
-    }};
+    use crate::{
+        error::ErrorStack,
+        evp::{
+            ec::{CurveNid, CurveRawNid, EcKey},
+            rsa::{RsaKey, RsaSize},
+            Private,
+        },
+    };
 
     #[test]
     pub fn test_rsa() {
@@ -270,13 +290,12 @@ mod test {
 
         let message = b"The quick brown fox jumps over the lazy dog";
 
-        let signature = ec_key.sign(message)
-            .expect("Failed to sign the message");
+        let signature = ec_key.sign(message).expect("Failed to sign the message");
 
-        let evp_pkey_public = ec_key.get_public()
-            .expect("Failed to extract public key");
+        let evp_pkey_public = ec_key.get_public().expect("Failed to extract public key");
 
-        evp_pkey_public.verify_sign(message, &signature)
+        evp_pkey_public
+            .verify_sign(message, &signature)
             .expect("Failed to verify the signature");
 
         Ok(())
