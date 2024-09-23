@@ -14,9 +14,20 @@ foreign_type! {
 }
 
 #[derive(Debug, Clone, Copy)]
+#[allow(unused)]
 enum MacAlgorithm {
     CMAC,
     HMAC,
+    Poly1305,
+    SipHash,
+    GMAC,
+    KMAC128,
+    KMAC256,
+    BLAKE2BMAC,
+    BLAKE2SMAC,
+    // PMAC,
+    // UMAC,
+    // VMAC,
 }
 
 impl From<MacAlgorithm> for &'static str {
@@ -35,6 +46,16 @@ impl MacAlgorithm {
         match self {
             Self::CMAC => std::str::from_utf8_unchecked(SN_cmac.to_bytes()),
             Self::HMAC => std::str::from_utf8_unchecked(SN_hmac.to_bytes()),
+            Self::Poly1305 => std::str::from_utf8_unchecked(SN_poly1305.to_bytes()),
+            Self::SipHash => std::str::from_utf8_unchecked(SN_siphash.to_bytes()),
+            Self::GMAC => std::str::from_utf8_unchecked(SN_gmac.to_bytes()),
+            Self::KMAC128 => std::str::from_utf8_unchecked(SN_kmac128.to_bytes()),
+            Self::KMAC256 => std::str::from_utf8_unchecked(SN_kmac256.to_bytes()),
+            Self::BLAKE2BMAC => std::str::from_utf8_unchecked(SN_blake2bmac.to_bytes()),
+            Self::BLAKE2SMAC => std::str::from_utf8_unchecked(SN_blake2smac.to_bytes()),
+            // Self::PMAC => std::str::from_utf8_unchecked(SN_cmac.to_bytes()),
+            // Self::UMAC => std::str::from_utf8_unchecked(SN_cmac.to_bytes()),
+            // Self::VMAC => std::str::from_utf8_unchecked(SN_cmac.to_bytes()),
         }
     }
 }
@@ -112,6 +133,33 @@ impl EvpMac {
             Ok(cmac_value)
         }
     }
+
+    pub fn compute_poly1305(key: &[u8], data: &[u8]) -> Result<Vec<u8>, ErrorStack> {
+        unsafe {
+            let ctx = EvpMacCtx::from(MacAlgorithm::Poly1305);
+
+            // TODO: return early Poly1305 typically requires a 32-byte key
+            // if key.len() != 32 {
+            //     return Err(ErrorStack::from_str("Poly1305 requires a 32-byte key"));
+            // }
+
+            EVP_MAC_init(ctx.as_ptr(), key.as_ptr(), key.len(), std::ptr::null_mut());
+
+            EVP_MAC_update(ctx.as_ptr(), data.as_ptr(), data.len());
+
+            let mut mac_value = Vec::with_capacity(16); // Poly1305 produces a 16-byte MAC
+            let mut mac_len: usize = 0;
+            EVP_MAC_final(
+                ctx.as_ptr(),
+                mac_value.as_mut_ptr(),
+                &mut mac_len,
+                16,
+            );
+            mac_value.set_len(mac_len);
+
+            Ok(mac_value)
+        }
+    }
 }
 
 #[cfg(test)]
@@ -120,7 +168,6 @@ mod tests {
 
     #[test]
     fn test_compute_cmac() {
-        // Define the key, data, and expected CMAC as byte arrays
         let key: Vec<u8> = vec![
             0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf,
             0x4f, 0x3c,
@@ -136,10 +183,8 @@ mod tests {
             0x28, 0x7c,
         ];
 
-        // Compute the CMAC using the provided function
         let cmac_result = EvpMac::compute_cmac(&key, &data).expect("CMAC computation failed");
 
-        // Verify that the computed CMAC matches the expected value
         assert_eq!(
             cmac_result, expected_cmac,
             "Computed CMAC does not match the expected value"
@@ -148,27 +193,41 @@ mod tests {
 
     #[test]
     fn test_compute_hmac() {
-        // Define the key, data, and expected HMAC as byte arrays
-
         let key: Vec<u8> = vec![0x0b; 20];
 
-        // Data: "Hi There"
         let data: Vec<u8> = b"Hi There".to_vec();
 
-        // Expected HMAC-SHA256
         let expected_hmac: Vec<u8> = vec![
             0xb0, 0x34, 0x4c, 0x61, 0xd8, 0xdb, 0x38, 0x53, 0x5c, 0xa8, 0xaf, 0xce, 0xaf, 0x0b,
             0xf1, 0x2b, 0x88, 0x1d, 0xc2, 0x00, 0xc9, 0x83, 0x3d, 0xa7, 0x26, 0xe9, 0x37, 0x6c,
             0x2e, 0x32, 0xcf, 0xf7,
         ];
 
-        // Compute the HMAC using the provided function
         let hmac_result = EvpMac::compute_hmac(&key, &data).expect("HMAC computation failed");
 
-        // Verify that the computed HMAC matches the expected value
         assert_eq!(
             hmac_result, expected_hmac,
             "Computed HMAC does not match the expected value"
+        );
+    }
+
+    #[test]
+    fn test_compute_poly1305() {
+        // Define key (32 bytes!!!)
+        let key = b"mysupersecretkeyforpoly1305algor".as_ref();
+
+        let data = b"Cryptographic Forum Research Group".as_ref();
+
+        let expected_mac: Vec<u8> = vec![
+            0x02, 0xC6, 0x82, 0xD9, 0x87, 0xD2, 0x3C, 0xFF, 0x9D, 0x50, 0x60, 
+            0xAC, 0xBD, 0x3C, 0x36, 0x56, 
+        ];
+
+        let mac_result = EvpMac::compute_poly1305(key, data).expect("Poly1305 computation failed");
+
+        assert_eq!(
+            mac_result, expected_mac,
+            "Computed Poly1305 MAC does not match the expected value"
         );
     }
 }
