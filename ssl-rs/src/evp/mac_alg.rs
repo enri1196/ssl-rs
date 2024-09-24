@@ -14,7 +14,6 @@ foreign_type! {
 }
 
 #[derive(Debug, Clone, Copy)]
-#[allow(unused)]
 enum MacAlgorithm {
     CMAC,
     HMAC,
