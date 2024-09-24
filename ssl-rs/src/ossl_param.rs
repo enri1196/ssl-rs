@@ -44,6 +44,13 @@ impl OsslParamBld {
         }
     }
 
+    pub fn push_usize(self, key: &str, value: usize) -> Self {
+        unsafe {
+            OSSL_PARAM_BLD_push_size_t(self.as_ptr(), key.as_ptr() as *const c_char, value);
+            self
+        }
+    }
+
     pub fn push_str(self, key: &str, value: &str) -> Self {
         unsafe {
             crate::check_code(OSSL_PARAM_BLD_push_utf8_string(

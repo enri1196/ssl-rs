@@ -22,11 +22,6 @@ enum MacAlgorithm {
     GMAC,
     KMAC128,
     KMAC256,
-    BLAKE2BMAC,
-    BLAKE2SMAC,
-    // PMAC,
-    // UMAC,
-    // VMAC,
 }
 
 impl From<MacAlgorithm> for &'static str {
@@ -49,11 +44,6 @@ impl MacAlgorithm {
             Self::GMAC => std::str::from_utf8_unchecked(SN_gmac.to_bytes()),
             Self::KMAC128 => std::str::from_utf8_unchecked(SN_kmac128.to_bytes()),
             Self::KMAC256 => std::str::from_utf8_unchecked(SN_kmac256.to_bytes()),
-            Self::BLAKE2BMAC => std::str::from_utf8_unchecked(SN_blake2bmac.to_bytes()),
-            Self::BLAKE2SMAC => std::str::from_utf8_unchecked(SN_blake2smac.to_bytes()),
-            // Self::PMAC => std::str::from_utf8_unchecked(SN_cmac.to_bytes()),
-            // Self::UMAC => std::str::from_utf8_unchecked(SN_cmac.to_bytes()),
-            // Self::VMAC => std::str::from_utf8_unchecked(SN_cmac.to_bytes()),
         }
     }
 }
@@ -179,18 +169,68 @@ impl EvpMac {
 
             let mut mac_value = Vec::with_capacity(16); // GMAC typically produces a 16-byte MAC
             let mut mac_len: usize = 0;
-            EVP_MAC_final(
-                ctx.as_ptr(),
-                mac_value.as_mut_ptr(),
-                &mut mac_len,
-                16,
-            );
+            EVP_MAC_final(ctx.as_ptr(), mac_value.as_mut_ptr(), &mut mac_len, 16);
             mac_value.set_len(mac_len);
 
             Ok(mac_value)
         }
     }
-    
+
+    pub fn compute_kmac128(
+        key: &[u8],
+        data: &[u8],
+        customization: Option<&str>,
+    ) -> Result<Vec<u8>, ErrorStack> {
+        unsafe {
+            let ctx = EvpMacCtx::from(MacAlgorithm::KMAC128);
+
+            let mut params_builder = OsslParamBld::new();
+            if let Some(custom) = customization {
+                params_builder = params_builder.push_str("customization\0", custom);
+            }
+            let params = params_builder.build();
+
+            EVP_MAC_init(ctx.as_ptr(), key.as_ptr(), key.len(), params.as_ptr());
+
+            EVP_MAC_update(ctx.as_ptr(), data.as_ptr(), data.len());
+
+            // KMAC128 can produce variable-length MACs. Reserve 32 bytes.
+            let mut mac_value = Vec::with_capacity(32);
+            let mut mac_len: usize = 0;
+            EVP_MAC_final(ctx.as_ptr(), mac_value.as_mut_ptr(), &mut mac_len, 32);
+            mac_value.set_len(mac_len);
+
+            Ok(mac_value)
+        }
+    }
+
+    pub fn compute_kmac256(
+        key: &[u8],
+        data: &[u8],
+        customization: Option<&str>,
+    ) -> Result<Vec<u8>, ErrorStack> {
+        unsafe {
+            let ctx = EvpMacCtx::from(MacAlgorithm::KMAC256);
+
+            let mut params_builder = OsslParamBld::new();
+            if let Some(custom) = customization {
+                params_builder = params_builder.push_str("customization\0", custom);
+            }
+            let params = params_builder.build();
+
+            EVP_MAC_init(ctx.as_ptr(), key.as_ptr(), key.len(), params.as_ptr());
+
+            EVP_MAC_update(ctx.as_ptr(), data.as_ptr(), data.len());
+
+            // KMAC256 can produce variable-length MACs. Reserve 64 bytes.
+            let mut mac_value = Vec::with_capacity(64);
+            let mut mac_len: usize = 0;
+            EVP_MAC_final(ctx.as_ptr(), mac_value.as_mut_ptr(), &mut mac_len, 64);
+            mac_value.set_len(mac_len);
+
+            Ok(mac_value)
+        }
+    }
 }
 
 #[cfg(test)]
@@ -253,9 +293,8 @@ mod tests {
         let data = b"Cryptographic Forum Research Group".as_ref();
 
         let expected_mac: Vec<u8> = vec![
-            0x02, 0xC6, 0x82, 0xD9, 0x87, 0xD2,
-            0x3C, 0xFF, 0x9D, 0x50, 0x60, 0xAC,
-            0xBD, 0x3C, 0x36, 0x56,
+            0x02, 0xC6, 0x82, 0xD9, 0x87, 0xD2, 0x3C, 0xFF, 0x9D, 0x50, 0x60, 0xAC, 0xBD, 0x3C,
+            0x36, 0x56,
         ];
 
         let mac_result = EvpMac::compute_poly1305(key, data).expect("Poly1305 computation failed");
@@ -269,20 +308,71 @@ mod tests {
     #[test]
     fn test_compute_gmac() {
         let key: Vec<u8> = vec![
-            0x00, 0x01, 0x02, 0x03,
-            0x04, 0x05, 0x06, 0x07,
-            0x08, 0x09, 0x0a, 0x0b,
-            0x0c, 0x0d, 0x0e, 0x0f,
+            0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d,
+            0x0e, 0x0f,
         ];
 
         let data: Vec<u8> = b"GMAC data".to_vec();
         let aad: Vec<u8> = b"Additional Authenticated Data".to_vec();
 
-        let gmac_result = EvpMac::compute_gmac(&key, &data, Some(&aad)).expect("GMAC computation failed");
+        let gmac_result =
+            EvpMac::compute_gmac(&key, &data, Some(&aad)).expect("GMAC computation failed");
 
         assert_eq!(
-            gmac_result.len(), 16,
+            gmac_result.len(),
+            16,
             "Computed GMAC does not match the expected value"
+        );
+    }
+
+    #[test]
+    fn test_compute_kmac128() {
+        let key: Vec<u8> = b"An example key for KMAC128".to_vec();
+        let data: Vec<u8> = b"Example data for KMAC128".to_vec();
+        let customization: Option<&str> = Some("Custom");
+
+        // Expected KMAC128 MAC (32 bytes)
+        let expected_mac: Vec<u8> = vec![
+            0xaf, 0xdc, 0x31, 0xb7, 0x85, 0xff, 0x24, 0xe0, 0x18, 0xdb,
+            0x62, 0x8, 0x3d, 0x2f, 0xce, 0x9b, 0x34, 0xcf, 0x69, 0xe8,
+            0xdb, 0x81, 0x54, 0x57, 0x8a, 0x14, 0x33, 0x9e, 0x1b, 0x91,
+            0xa, 0xba,
+        ];
+
+        let kmac_result = EvpMac::compute_kmac128(&key, &data, customization)
+            .expect("KMAC128 computation failed");
+
+        assert_eq!(
+            kmac_result, expected_mac,
+            "Computed KMAC128 does not match the expected value"
+        );
+    }
+
+    #[test]
+    fn test_compute_kmac256() {
+        // Define the key, data, and expected KMAC256 as byte arrays
+        let key: Vec<u8> = b"Another example key for KMAC256".to_vec();
+        let data: Vec<u8> = b"Example data for KMAC256".to_vec();
+        let customization: Option<&str> = Some("Custom256");
+
+        // Expected KMAC256 MAC (64 bytes)
+        let expected_mac: Vec<u8> = vec![
+            0xdb, 0xd7, 0x4a, 0x4, 0x0, 0xe4, 0x70, 0x4e, 0x4f, 0x37, 0xcb,
+            0x5f, 0x41, 0xe5, 0x1b, 0x71, 0x7a, 0xe7, 0x80, 0x16, 0xef, 0xe6,
+            0x17, 0x96, 0x23, 0xc7, 0x7e, 0xca, 0xec, 0x53, 0x34, 0x1, 0x5c,
+            0x31, 0x97, 0x6d, 0xe3, 0xa1, 0xac, 0x48, 0x94, 0xcd, 0xd5, 0xc,
+            0x36, 0xb1, 0x48, 0xfd, 0xf5, 0xf3, 0x67, 0x1e, 0xba, 0xf8, 0x0,
+            0xc6, 0x53, 0xd0, 0x87, 0x2c, 0x19, 0xb2, 0xd1, 0x91,
+        ];
+
+        // Compute the KMAC256 using the provided function
+        let kmac_result = EvpMac::compute_kmac256(&key, &data, customization)
+            .expect("KMAC256 computation failed");
+
+        // Verify that the computed KMAC256 matches the expected value
+        assert_eq!(
+            kmac_result, expected_mac,
+            "Computed KMAC256 does not match the expected value"
         );
     }
 }
