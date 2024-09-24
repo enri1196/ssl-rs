@@ -4,6 +4,7 @@ use crate::ssl::*;
 pub enum Cipher {
     AES128CBC,
     AES128ECB,
+    AES128GCM,
     AES128CCM,
     AES192ECB,
     AES192CBC,
@@ -31,6 +32,7 @@ impl Cipher {
         match self {
             Self::AES128CBC => std::str::from_utf8_unchecked(SN_aes_128_cbc.to_bytes()),
             Self::AES128ECB => std::str::from_utf8_unchecked(SN_aes_128_ecb.to_bytes()),
+            Self::AES128GCM => std::str::from_utf8_unchecked(SN_aes_128_gcm.to_bytes()),
             Self::AES128CCM => std::str::from_utf8_unchecked(SN_aes_128_ccm.to_bytes()),
             Self::AES192ECB => std::str::from_utf8_unchecked(SN_aes_192_ecb.to_bytes()),
             Self::AES192CBC => std::str::from_utf8_unchecked(SN_aes_192_cbc.to_bytes()),
