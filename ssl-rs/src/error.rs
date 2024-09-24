@@ -1,3 +1,5 @@
+use std::u64;
+
 use foreign_types::ForeignType;
 use thiserror::Error;
 
@@ -32,5 +34,11 @@ impl ErrorStack {
 
             ErrorStack { code, reason }
         }
+    }
+}
+
+impl From<&'static str> for ErrorStack {
+    fn from(value: &'static str) -> Self {
+        Self { code: u64::MAX, reason: value.to_string() }
     }
 }
