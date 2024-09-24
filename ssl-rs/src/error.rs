@@ -39,6 +39,9 @@ impl ErrorStack {
 
 impl From<&'static str> for ErrorStack {
     fn from(value: &'static str) -> Self {
-        Self { code: u64::MAX, reason: value.to_string() }
+        Self {
+            code: u64::MAX,
+            reason: value.to_string(),
+        }
     }
 }
