@@ -140,7 +140,6 @@ impl EvpMac {
         unsafe {
             let ctx = EvpMacCtx::from(MacAlgorithm::POLY1305);
 
-            // TODO: return early Poly1305 typically requires a 32-byte key
             if key.len() != 32 {
                 return Err(ErrorStack::from("Poly1305 requires a 32-byte key"));
             }
