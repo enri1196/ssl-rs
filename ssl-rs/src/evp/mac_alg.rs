@@ -18,8 +18,7 @@ foreign_type! {
 enum MacAlgorithm {
     CMAC,
     HMAC,
-    Poly1305,
-    SipHash,
+    POLY1305,
     GMAC,
     KMAC128,
     KMAC256,
@@ -46,8 +45,7 @@ impl MacAlgorithm {
         match self {
             Self::CMAC => std::str::from_utf8_unchecked(SN_cmac.to_bytes()),
             Self::HMAC => std::str::from_utf8_unchecked(SN_hmac.to_bytes()),
-            Self::Poly1305 => std::str::from_utf8_unchecked(SN_poly1305.to_bytes()),
-            Self::SipHash => std::str::from_utf8_unchecked(SN_siphash.to_bytes()),
+            Self::POLY1305 => std::str::from_utf8_unchecked(SN_poly1305.to_bytes()),
             Self::GMAC => std::str::from_utf8_unchecked(SN_gmac.to_bytes()),
             Self::KMAC128 => std::str::from_utf8_unchecked(SN_kmac128.to_bytes()),
             Self::KMAC256 => std::str::from_utf8_unchecked(SN_kmac256.to_bytes()),
@@ -82,12 +80,12 @@ impl From<MacAlgorithm> for EvpMacCtx {
 }
 
 impl EvpMac {
-    pub fn compute_cmac(key: &[u8], data: &[u8]) -> Result<Vec<u8>, ErrorStack> {
+    pub fn compute_cmac(key: &[u8], data: &[u8], cipher: Cipher) -> Result<Vec<u8>, ErrorStack> {
         unsafe {
             let ctx = EvpMacCtx::from(MacAlgorithm::CMAC);
 
             let params = OsslParamBld::new()
-                .push_str("cipher\0", Cipher::AES128CBC.as_str())
+                .push_str("cipher\0", cipher.as_str())
                 .build();
 
             EVP_MAC_init(ctx.as_ptr(), key.as_ptr(), key.len(), params.as_ptr());
@@ -108,12 +106,16 @@ impl EvpMac {
         }
     }
 
-    pub fn compute_hmac(key: &[u8], data: &[u8]) -> Result<Vec<u8>, ErrorStack> {
+    pub fn compute_hmac(
+        key: &[u8],
+        data: &[u8],
+        digest: DigestAlgorithm,
+    ) -> Result<Vec<u8>, ErrorStack> {
         unsafe {
             let ctx = EvpMacCtx::from(MacAlgorithm::HMAC);
 
             let params = OsslParamBld::new()
-                .push_str("digest\0", DigestAlgorithm::SHA256.as_str())
+                .push_str("digest\0", digest.as_str())
                 .build();
 
             EVP_MAC_init(ctx.as_ptr(), key.as_ptr(), key.len(), params.as_ptr());
@@ -136,18 +138,47 @@ impl EvpMac {
 
     pub fn compute_poly1305(key: &[u8], data: &[u8]) -> Result<Vec<u8>, ErrorStack> {
         unsafe {
-            let ctx = EvpMacCtx::from(MacAlgorithm::Poly1305);
+            let ctx = EvpMacCtx::from(MacAlgorithm::POLY1305);
 
             // TODO: return early Poly1305 typically requires a 32-byte key
-            // if key.len() != 32 {
-            //     return Err(ErrorStack::from_str("Poly1305 requires a 32-byte key"));
-            // }
+            if key.len() != 32 {
+                return Err(ErrorStack::from("Poly1305 requires a 32-byte key"));
+            }
 
             EVP_MAC_init(ctx.as_ptr(), key.as_ptr(), key.len(), std::ptr::null_mut());
 
             EVP_MAC_update(ctx.as_ptr(), data.as_ptr(), data.len());
 
             let mut mac_value = Vec::with_capacity(16); // Poly1305 produces a 16-byte MAC
+            let mut mac_len: usize = 0;
+            EVP_MAC_final(ctx.as_ptr(), mac_value.as_mut_ptr(), &mut mac_len, 16);
+            mac_value.set_len(mac_len);
+
+            Ok(mac_value)
+        }
+    }
+
+    pub fn compute_gmac(
+        key: &[u8],
+        data: &[u8],
+        aad: Option<&[u8]>,
+    ) -> Result<Vec<u8>, ErrorStack> {
+        unsafe {
+            let ctx = EvpMacCtx::from(MacAlgorithm::GMAC);
+
+            let params = OsslParamBld::new()
+                .push_str("cipher\0", Cipher::AES128GCM.as_str()) // GMAC typically uses AES in GCM mode
+                .build();
+
+            EVP_MAC_init(ctx.as_ptr(), key.as_ptr(), key.len(), params.as_ptr());
+
+            if let Some(aad_data) = aad {
+                EVP_MAC_update(ctx.as_ptr(), aad_data.as_ptr(), aad_data.len());
+            }
+
+            EVP_MAC_update(ctx.as_ptr(), data.as_ptr(), data.len());
+
+            let mut mac_value = Vec::with_capacity(16); // GMAC typically produces a 16-byte MAC
             let mut mac_len: usize = 0;
             EVP_MAC_final(
                 ctx.as_ptr(),
@@ -160,6 +191,7 @@ impl EvpMac {
             Ok(mac_value)
         }
     }
+    
 }
 
 #[cfg(test)]
@@ -168,6 +200,7 @@ mod tests {
 
     #[test]
     fn test_compute_cmac() {
+        // Define key (16 bytes!!! since cipher is AES-128)
         let key: Vec<u8> = vec![
             0x2b, 0x7e, 0x15, 0x16, 0x28, 0xae, 0xd2, 0xa6, 0xab, 0xf7, 0x15, 0x88, 0x09, 0xcf,
             0x4f, 0x3c,
@@ -183,7 +216,8 @@ mod tests {
             0x28, 0x7c,
         ];
 
-        let cmac_result = EvpMac::compute_cmac(&key, &data).expect("CMAC computation failed");
+        let cmac_result =
+            EvpMac::compute_cmac(&key, &data, Cipher::AES128CBC).expect("CMAC computation failed");
 
         assert_eq!(
             cmac_result, expected_cmac,
@@ -203,7 +237,8 @@ mod tests {
             0x2e, 0x32, 0xcf, 0xf7,
         ];
 
-        let hmac_result = EvpMac::compute_hmac(&key, &data).expect("HMAC computation failed");
+        let hmac_result = EvpMac::compute_hmac(&key, &data, DigestAlgorithm::SHA256)
+            .expect("HMAC computation failed");
 
         assert_eq!(
             hmac_result, expected_hmac,
@@ -219,8 +254,9 @@ mod tests {
         let data = b"Cryptographic Forum Research Group".as_ref();
 
         let expected_mac: Vec<u8> = vec![
-            0x02, 0xC6, 0x82, 0xD9, 0x87, 0xD2, 0x3C, 0xFF, 0x9D, 0x50, 0x60, 
-            0xAC, 0xBD, 0x3C, 0x36, 0x56, 
+            0x02, 0xC6, 0x82, 0xD9, 0x87, 0xD2,
+            0x3C, 0xFF, 0x9D, 0x50, 0x60, 0xAC,
+            0xBD, 0x3C, 0x36, 0x56,
         ];
 
         let mac_result = EvpMac::compute_poly1305(key, data).expect("Poly1305 computation failed");
@@ -228,6 +264,26 @@ mod tests {
         assert_eq!(
             mac_result, expected_mac,
             "Computed Poly1305 MAC does not match the expected value"
+        );
+    }
+
+    #[test]
+    fn test_compute_gmac() {
+        let key: Vec<u8> = vec![
+            0x00, 0x01, 0x02, 0x03,
+            0x04, 0x05, 0x06, 0x07,
+            0x08, 0x09, 0x0a, 0x0b,
+            0x0c, 0x0d, 0x0e, 0x0f,
+        ];
+
+        let data: Vec<u8> = b"GMAC data".to_vec();
+        let aad: Vec<u8> = b"Additional Authenticated Data".to_vec();
+
+        let gmac_result = EvpMac::compute_gmac(&key, &data, Some(&aad)).expect("GMAC computation failed");
+
+        assert_eq!(
+            gmac_result.len(), 16,
+            "Computed GMAC does not match the expected value"
         );
     }
 }
