@@ -24,6 +24,7 @@ fn main() {
         .allowlist_function("TS_.*")
         .allowlist_function("BN_.*")
         .allowlist_function("d2i_.*")
+        .allowlist_function("i2d_.*")
         .allowlist_function("PEM_.*")
         .allowlist_function("OBJ_.*")
         .allowlist_function("GENERAL_.*")
