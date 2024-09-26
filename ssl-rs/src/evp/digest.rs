@@ -41,7 +41,7 @@ impl From<DigestAlgorithm> for &'static str {
 }
 
 impl DigestAlgorithm {
-    unsafe fn to_md(self) -> *const EVP_MD {
+    pub(crate) unsafe fn to_md(self) -> *const EVP_MD {
         match self {
             Self::MD5 => EVP_md5(),
             Self::SHA1 => EVP_sha1(),

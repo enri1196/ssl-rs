@@ -3,6 +3,7 @@ pub mod digest;
 pub mod ec;
 pub mod ecdh;
 mod evp_ctx;
+pub mod hkdf;
 pub mod mac_alg;
 pub mod rsa;
 
@@ -35,6 +36,7 @@ pub enum EvpId {
     X448Id = EVP_PKEY_X448,
     Ed25519Id = EVP_PKEY_ED25519,
     Ed448Id = EVP_PKEY_ED448,
+    Hkdf = EVP_PKEY_HKDF,
 }
 
 impl EvpId {
