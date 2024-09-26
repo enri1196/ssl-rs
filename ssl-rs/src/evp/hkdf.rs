@@ -46,6 +46,18 @@ impl Hkdf {
             Ok(Self(hkdf_key))
         }
     }
+
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    pub fn to_bytes(&self) -> &[u8] {
+        &self.0
+    }
 }
 
 #[cfg(test)]
