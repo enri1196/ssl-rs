@@ -7,7 +7,7 @@ use crate::{error::ErrorStack, ssl::*};
 pub struct Hkdf(Vec<u8>);
 
 impl Hkdf {
-    pub fn derive_key(salt: &[u8], key: &[u8], info: Option<&[u8]>) -> Result<Self, ErrorStack> {
+    pub fn derive_key(salt: &[u8], key: &[u8], info: Option<&[u8]>, derive_len: usize) -> Result<Self, ErrorStack> {
         unsafe {
             let hkdf_ctx = EvpCtx::from(EvpId::Hkdf);
             crate::check_code(EVP_PKEY_derive_init(hkdf_ctx.as_ptr()))?;
@@ -34,7 +34,7 @@ impl Hkdf {
                 ))?;
             }
 
-            let mut hkdf_key_len = 32;
+            let mut hkdf_key_len = derive_len;
             let mut hkdf_key = Vec::with_capacity(hkdf_key_len);
             crate::check_code(EVP_PKEY_derive(
                 hkdf_ctx.as_ptr(),
@@ -83,7 +83,7 @@ mod tests {
         ];
 
         // Perform key derivation
-        let derived = Hkdf::derive_key(salt, &ikm, Some(info)).expect("Key derivation failed");
+        let derived = Hkdf::derive_key(salt, &ikm, Some(info), 32).expect("Key derivation failed");
 
         // Assert that the derived key matches the expected OKM
         assert_eq!(
