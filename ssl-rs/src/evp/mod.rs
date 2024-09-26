@@ -55,6 +55,10 @@ foreign_type! {
 }
 
 impl EvpPkey<Private> {
+    pub fn size(&self) -> usize {
+        self.as_ref().size()
+    }
+
     pub fn get_public(&self) -> Result<EvpPkey<Public>, ErrorStack> {
         self.as_ref().get_public()
     }
@@ -65,17 +69,16 @@ impl EvpPkey<Private> {
 }
 
 impl EvpPkeyRef<Private> {
+    pub fn size(&self) -> usize {
+        unsafe { EVP_PKEY_get_size(self.as_ptr()) as usize }
+    }
+
     pub fn get_public(&self) -> Result<EvpPkey<Public>, ErrorStack> {
         unsafe {
             let bio = SslBio::memory();
-            crate::check_code(PEM_write_bio_PUBKEY(bio.as_ptr(), self.as_ptr()))?;
-            crate::check_ptr(PEM_read_bio_PUBKEY(
-                bio.as_ptr(),
-                std::ptr::null_mut(),
-                None,
-                std::ptr::null_mut(),
-            ))
-            .map(|ptr| EvpPkey::<Public>::from_ptr(ptr))
+            i2d_PUBKEY_bio(bio.as_ptr(), self.as_ptr());
+            let pub_ptr = d2i_PUBKEY_bio(bio.as_ptr(), std::ptr::null_mut());
+            Ok(EvpPkey::from_ptr(pub_ptr))
         }
     }
 
@@ -158,6 +161,21 @@ impl TryFrom<EvpCtx> for EvpPkey<Private> {
                 &mut m_key.as_ptr() as *mut *mut _,
             ))?;
             Ok(m_key)
+        }
+    }
+}
+
+impl TryFrom<&[u8]> for EvpPkey<Public> {
+    type Error = ErrorStack;
+
+    fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
+        unsafe {
+            let ptr = d2i_PUBKEY(
+                std::ptr::null_mut(),
+                value.as_ptr() as *mut *const u8,
+                value.len() as i64
+            );
+            Ok(EvpPkey::from_ptr(ptr))
         }
     }
 }
@@ -251,9 +269,13 @@ mod test {
 
     #[test]
     pub fn test_rsa() {
+        let earlier = std::time::Instant::now();
         let key = RsaKey::new_rsa(RsaSize::Rs2048).unwrap();
         println!("{}", key.to_string());
         println!("{}", key.get_public().unwrap().to_string());
+        let instant = std::time::Instant::now();
+        let elapsed = instant.duration_since(earlier).as_micros();
+        println!("TIME: {elapsed}")
         // assert_eq!(6, key.id().get_raw());
         // assert_eq!(256, key.size());
     }
