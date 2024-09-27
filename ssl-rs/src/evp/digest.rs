@@ -81,30 +81,31 @@ impl DigestAlgorithm {
             Self::BLAKE2b512 => std::str::from_utf8_unchecked(SN_blake2b512.to_bytes()),
         }
     }
-}
 
-pub fn hash(message: &[u8], digest: DigestAlgorithm) -> Result<Vec<u8>, ErrorStack> {
-    unsafe {
-        let mdctx = EvpMdCtx::default();
-        crate::check_code(EVP_DigestInit_ex(
-            mdctx.as_ptr(),
-            digest.to_md(),
-            std::ptr::null_mut(),
-        ))?;
-        crate::check_code(EVP_DigestUpdate(
-            mdctx.as_ptr(),
-            message.as_ptr() as *const _,
-            message.len(),
-        ))?;
-        let mut digest: Vec<u8> = Vec::with_capacity(EVP_MAX_MD_SIZE as usize);
-        let mut digest_len: u32 = 0;
-        crate::check_code(EVP_DigestFinal_ex(
-            mdctx.as_ptr(),
-            digest.as_mut_ptr(),
-            &mut digest_len,
-        ))?;
-        digest.set_len(digest_len as usize);
-        Ok(digest)
+    pub fn hash(&self, message: &[u8]) -> Result<Vec<u8>, ErrorStack> {
+        unsafe {
+            let digest_alg = self.to_md();
+            let mdctx = EvpMdCtx::default();
+            crate::check_code(EVP_DigestInit_ex(
+                mdctx.as_ptr(),
+                digest_alg,
+                std::ptr::null_mut(),
+            ))?;
+            crate::check_code(EVP_DigestUpdate(
+                mdctx.as_ptr(),
+                message.as_ptr() as *const _,
+                message.len(),
+            ))?;
+            let mut digest: Vec<u8> = Vec::with_capacity(EVP_MAX_MD_SIZE as usize);
+            let mut digest_len: u32 = 0;
+            crate::check_code(EVP_DigestFinal_ex(
+                mdctx.as_ptr(),
+                digest.as_mut_ptr(),
+                &mut digest_len,
+            ))?;
+            digest.set_len(digest_len as usize);
+            Ok(digest)
+        }
     }
 }
 
@@ -118,8 +119,9 @@ mod tests {
         let message = b"hello world";
         let expected_hash =
             hex!("b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9");
-        let result =
-            hash(message.as_ref(), DigestAlgorithm::SHA256).expect("Hash computation failed");
+        let result = DigestAlgorithm::SHA256
+            .hash(message.as_ref())
+            .expect("Hash computation failed");
 
         assert_eq!(
             result, expected_hash,
