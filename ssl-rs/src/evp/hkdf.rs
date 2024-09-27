@@ -7,7 +7,12 @@ use crate::{error::ErrorStack, ssl::*};
 pub struct Hkdf(Vec<u8>);
 
 impl Hkdf {
-    pub fn derive_key(salt: &[u8], key: &[u8], info: Option<&[u8]>, derive_len: usize) -> Result<Self, ErrorStack> {
+    pub fn derive_key(
+        salt: &[u8],
+        key: &[u8],
+        info: Option<&[u8]>,
+        derive_len: usize,
+    ) -> Result<Self, ErrorStack> {
         unsafe {
             let hkdf_ctx = EvpCtx::from(EvpId::Hkdf);
             crate::check_code(EVP_PKEY_derive_init(hkdf_ctx.as_ptr()))?;

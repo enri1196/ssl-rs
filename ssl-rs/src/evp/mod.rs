@@ -173,7 +173,7 @@ impl TryFrom<&[u8]> for EvpPkey<Public> {
             let ptr = d2i_PUBKEY(
                 std::ptr::null_mut(),
                 value.as_ptr() as *mut *const u8,
-                value.len() as i64
+                value.len() as i64,
             );
             Ok(EvpPkey::from_ptr(ptr))
         }
