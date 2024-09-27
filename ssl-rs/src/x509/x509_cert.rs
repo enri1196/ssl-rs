@@ -64,7 +64,7 @@ impl TryFrom<&[u8]> for X509Cert {
 
     fn try_from(value: &[u8]) -> Result<Self, Self::Error> {
         unsafe {
-            let bio = SslBio::from(value.as_ref());
+            let bio = SslBio::from(value);
             let x509 = crate::check_ptr(PEM_read_bio_X509(
                 bio.as_ptr(),
                 std::ptr::null_mut(),

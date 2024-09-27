@@ -42,6 +42,16 @@ impl BigNumRef {
     pub fn len(&self) -> usize {
         unsafe { ((BN_num_bits(self.as_ptr()) + 7) / 8) as usize }
     }
+
+    pub fn is_empty(&self) -> bool {
+        unsafe { BN_num_bits(self.as_ptr()) == 0 }
+    }
+}
+
+impl Default for BigNum {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl TryFrom<&[u8]> for BigNum {

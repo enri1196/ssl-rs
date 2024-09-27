@@ -1,5 +1,3 @@
-use std::u64;
-
 use foreign_types::ForeignType;
 use thiserror::Error;
 

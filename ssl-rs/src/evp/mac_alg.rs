@@ -15,12 +15,12 @@ foreign_type! {
 
 #[derive(Debug, Clone, Copy)]
 enum MacAlgorithm {
-    CMAC,
-    HMAC,
-    POLY1305,
-    GMAC,
-    KMAC128,
-    KMAC256,
+    Cmac,
+    Hmac,
+    Poly1305,
+    Gmac,
+    Kmac128,
+    Kmac256,
 }
 
 impl From<MacAlgorithm> for &'static str {
@@ -37,12 +37,12 @@ impl MacAlgorithm {
 
     const unsafe fn inner_as_str(&self) -> &'static str {
         match self {
-            Self::CMAC => std::str::from_utf8_unchecked(SN_cmac.to_bytes()),
-            Self::HMAC => std::str::from_utf8_unchecked(SN_hmac.to_bytes()),
-            Self::POLY1305 => std::str::from_utf8_unchecked(SN_poly1305.to_bytes()),
-            Self::GMAC => std::str::from_utf8_unchecked(SN_gmac.to_bytes()),
-            Self::KMAC128 => std::str::from_utf8_unchecked(SN_kmac128.to_bytes()),
-            Self::KMAC256 => std::str::from_utf8_unchecked(SN_kmac256.to_bytes()),
+            Self::Cmac => std::str::from_utf8_unchecked(SN_cmac.to_bytes()),
+            Self::Hmac => std::str::from_utf8_unchecked(SN_hmac.to_bytes()),
+            Self::Poly1305 => std::str::from_utf8_unchecked(SN_poly1305.to_bytes()),
+            Self::Gmac => std::str::from_utf8_unchecked(SN_gmac.to_bytes()),
+            Self::Kmac128 => std::str::from_utf8_unchecked(SN_kmac128.to_bytes()),
+            Self::Kmac256 => std::str::from_utf8_unchecked(SN_kmac256.to_bytes()),
         }
     }
 }
@@ -71,7 +71,7 @@ impl From<MacAlgorithm> for EvpMacCtx {
 impl EvpMac {
     pub fn compute_cmac(key: &[u8], data: &[u8], cipher: Cipher) -> Result<Vec<u8>, ErrorStack> {
         unsafe {
-            let ctx = EvpMacCtx::from(MacAlgorithm::CMAC);
+            let ctx = EvpMacCtx::from(MacAlgorithm::Cmac);
 
             let params = OsslParamBld::new()
                 .push_str("cipher\0", cipher.as_str())
@@ -101,7 +101,7 @@ impl EvpMac {
         digest: DigestAlgorithm,
     ) -> Result<Vec<u8>, ErrorStack> {
         unsafe {
-            let ctx = EvpMacCtx::from(MacAlgorithm::HMAC);
+            let ctx = EvpMacCtx::from(MacAlgorithm::Hmac);
 
             let params = OsslParamBld::new()
                 .push_str("digest\0", digest.as_str())
@@ -127,7 +127,7 @@ impl EvpMac {
 
     pub fn compute_poly1305(key: &[u8], data: &[u8]) -> Result<Vec<u8>, ErrorStack> {
         unsafe {
-            let ctx = EvpMacCtx::from(MacAlgorithm::POLY1305);
+            let ctx = EvpMacCtx::from(MacAlgorithm::Poly1305);
 
             if key.len() != 32 {
                 return Err(ErrorStack::from("Poly1305 requires a 32-byte key"));
@@ -152,7 +152,7 @@ impl EvpMac {
         aad: Option<&[u8]>,
     ) -> Result<Vec<u8>, ErrorStack> {
         unsafe {
-            let ctx = EvpMacCtx::from(MacAlgorithm::GMAC);
+            let ctx = EvpMacCtx::from(MacAlgorithm::Gmac);
 
             let params = OsslParamBld::new()
                 .push_str("cipher\0", Cipher::AES128GCM.as_str()) // GMAC typically uses AES in GCM mode
@@ -181,7 +181,7 @@ impl EvpMac {
         customization: Option<&str>,
     ) -> Result<Vec<u8>, ErrorStack> {
         unsafe {
-            let ctx = EvpMacCtx::from(MacAlgorithm::KMAC128);
+            let ctx = EvpMacCtx::from(MacAlgorithm::Kmac128);
 
             let mut params_builder = OsslParamBld::new();
             if let Some(custom) = customization {
@@ -209,7 +209,7 @@ impl EvpMac {
         customization: Option<&str>,
     ) -> Result<Vec<u8>, ErrorStack> {
         unsafe {
-            let ctx = EvpMacCtx::from(MacAlgorithm::KMAC256);
+            let ctx = EvpMacCtx::from(MacAlgorithm::Kmac256);
 
             let mut params_builder = OsslParamBld::new();
             if let Some(custom) = customization {

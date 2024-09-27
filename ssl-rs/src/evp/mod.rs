@@ -100,7 +100,7 @@ impl EvpPkeyRef<Private> {
                 tbs.as_ptr(),
                 tbs.len(),
             ))?;
-            let mut sig = Vec::with_capacity(siglen as usize);
+            let mut sig = Vec::with_capacity(siglen);
             crate::check_code(EVP_DigestSign(
                 mdctx.as_ptr(),
                 sig.as_mut_ptr(),

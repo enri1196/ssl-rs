@@ -14,7 +14,7 @@ foreign_type! {
 }
 
 #[derive(Clone, Copy, Debug, AsRefStr)]
-pub enum X509Entries {
+pub enum X509Entry {
     C,
     CN,
     DC,
@@ -29,8 +29,8 @@ pub enum X509Entries {
     UID,
 }
 
-impl Display for X509Entries {
+impl Display for X509Entry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{self}")
+        write!(f, "{}", self.as_ref())
     }
 }
