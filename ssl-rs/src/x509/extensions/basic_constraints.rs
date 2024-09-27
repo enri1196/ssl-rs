@@ -6,7 +6,6 @@ use crate::{ssl::*, x509::X509Ext};
 
 use super::{ToExt, X509ExtNid};
 
-/// An extension which indicates whether a certificate is a CA certificate.
 #[derive(Default)]
 pub struct BasicConstraints {
     critical: bool,

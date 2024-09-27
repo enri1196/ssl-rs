@@ -6,7 +6,6 @@ use crate::{ssl::*, x509::X509Ext};
 
 use super::{ToExt, X509ExtNid};
 
-/// Represents the Authority Key Identifier (AKI) extension for X.509 certificates.
 #[derive(Default, Debug, Clone)]
 pub struct AuthorityKeyIdentifier {
     critical: bool,
@@ -49,8 +48,6 @@ impl AuthorityKeyIdentifier {
         self.authority_cert_serial = Some(serial.into());
         self
     }
-
-    // Additional methods can be added as needed
 }
 
 impl Display for AuthorityKeyIdentifier {
@@ -66,7 +63,6 @@ impl Display for AuthorityKeyIdentifier {
         }
 
         if !self.authority_cert_issuer.is_empty() {
-            // Multiple issuers can be separated by commas
             let issuers = self
                 .authority_cert_issuer
                 .iter()
@@ -80,7 +76,6 @@ impl Display for AuthorityKeyIdentifier {
             parts.push(format!("serial:{}", serial));
         }
 
-        // Join all parts with commas
         let value = parts.join(",");
 
         write!(f, "{}", value)
