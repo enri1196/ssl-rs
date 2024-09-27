@@ -1,9 +1,11 @@
+mod authrity_key_identifier;
 mod basic_constraints;
 mod ext_key_usage;
 mod issuer_alt_name;
 mod key_usage;
 mod subject_alt_name;
 
+pub use authrity_key_identifier::*;
 pub use basic_constraints::*;
 pub use ext_key_usage::*;
 pub use issuer_alt_name::*;
@@ -60,5 +62,11 @@ impl X509ExtNid {
         unsafe { std::str::from_utf8_unchecked(SN_issuer_alt_name.to_bytes()) },
         unsafe { std::str::from_utf8_unchecked(LN_issuer_alt_name.to_bytes()) },
         NID_issuer_alt_name as i32,
+    );
+
+    pub const AUTHORITY_KEY_IDENTIFIER: X509ExtNid = X509ExtNid(
+        unsafe { std::str::from_utf8_unchecked(SN_authority_key_identifier.to_bytes()) },
+        unsafe { std::str::from_utf8_unchecked(LN_authority_key_identifier.to_bytes()) },
+        NID_authority_key_identifier as i32,
     );
 }
