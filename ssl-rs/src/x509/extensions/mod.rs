@@ -1,10 +1,14 @@
 mod basic_constraints;
 mod ext_key_usage;
+mod issuer_alt_name;
 mod key_usage;
+mod subject_alt_name;
 
 pub use basic_constraints::*;
 pub use ext_key_usage::*;
+pub use issuer_alt_name::*;
 pub use key_usage::*;
+pub use subject_alt_name::*;
 
 use super::X509Ext;
 use crate::ssl::*;
@@ -44,5 +48,17 @@ impl X509ExtNid {
         unsafe { std::str::from_utf8_unchecked(SN_ext_key_usage.to_bytes()) },
         unsafe { std::str::from_utf8_unchecked(LN_ext_key_usage.to_bytes()) },
         NID_ext_key_usage as i32,
+    );
+
+    pub const SUBJECT_ALT_NAME: X509ExtNid = X509ExtNid(
+        unsafe { std::str::from_utf8_unchecked(SN_subject_alt_name.to_bytes()) },
+        unsafe { std::str::from_utf8_unchecked(LN_subject_alt_name.to_bytes()) },
+        NID_subject_alt_name as i32,
+    );
+
+    pub const ISSUER_ALT_NAME: X509ExtNid = X509ExtNid(
+        unsafe { std::str::from_utf8_unchecked(SN_issuer_alt_name.to_bytes()) },
+        unsafe { std::str::from_utf8_unchecked(LN_issuer_alt_name.to_bytes()) },
+        NID_issuer_alt_name as i32,
     );
 }
