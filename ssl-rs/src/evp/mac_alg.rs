@@ -4,7 +4,7 @@ use foreign_types::{foreign_type, ForeignType};
 
 use crate::{error::ErrorStack, ossl_param::OsslParamBld, ssl::*};
 
-use super::{cipher::Cipher, digest::DigestAlgorithm};
+use super::{cipher::Cipher, digest::MessageDigest};
 
 foreign_type! {
     pub unsafe type EvpMac {
@@ -98,7 +98,7 @@ impl EvpMac {
     pub fn compute_hmac(
         key: &[u8],
         data: &[u8],
-        digest: DigestAlgorithm,
+        digest: MessageDigest,
     ) -> Result<Vec<u8>, ErrorStack> {
         unsafe {
             let ctx = EvpMacCtx::from(MacAlgorithm::Hmac);
@@ -234,6 +234,8 @@ impl EvpMac {
 
 #[cfg(test)]
 mod tests {
+    use crate::evp::digest::MessageDigest;
+
     use super::*;
 
     #[test]
@@ -275,7 +277,7 @@ mod tests {
             0x2e, 0x32, 0xcf, 0xf7,
         ];
 
-        let hmac_result = EvpMac::compute_hmac(&key, &data, DigestAlgorithm::SHA256)
+        let hmac_result = EvpMac::compute_hmac(&key, &data, MessageDigest::SHA256)
             .expect("HMAC computation failed");
 
         assert_eq!(

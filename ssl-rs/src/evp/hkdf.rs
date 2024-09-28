@@ -1,6 +1,6 @@
 use foreign_types::ForeignType;
 
-use super::{digest::DigestAlgorithm, evp_ctx::EvpCtx, EvpId};
+use super::{digest::MessageDigest, evp_ctx::EvpCtx, EvpId};
 use crate::{error::ErrorStack, ssl::*};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
@@ -18,7 +18,7 @@ impl Hkdf {
             crate::check_code(EVP_PKEY_derive_init(hkdf_ctx.as_ptr()))?;
             crate::check_code(EVP_PKEY_CTX_set_hkdf_md(
                 hkdf_ctx.as_ptr(),
-                DigestAlgorithm::SHA256.to_md(),
+                MessageDigest::SHA256.to_md(),
             ))?;
             crate::check_code(EVP_PKEY_CTX_set1_hkdf_salt(
                 hkdf_ctx.as_ptr(),

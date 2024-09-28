@@ -123,8 +123,7 @@ impl Signer<Vec<u8>> for EvpPkey<Private> {
 
 impl Signer<Vec<u8>> for EvpPkeyRef<Private> {
     fn try_sign(&self, msg: &[u8]) -> Result<Vec<u8>, signature::Error> {
-        self.sign(msg)
-            .map_err(signature::Error::from_source)
+        self.sign(msg).map_err(signature::Error::from_source)
     }
 }
 
@@ -172,7 +171,7 @@ impl Verifier<Vec<u8>> for EvpPkeyRef<Public> {
                 } else {
                     Err(signature::Error::new())
                 }
-            },
+            }
             Err(err) => Err(signature::Error::from_source(err)),
         }
     }

@@ -1,6 +1,6 @@
 use foreign_types::{foreign_type, ForeignType};
 
-use crate::{error::ErrorStack, ssl::*};
+use crate::ssl::*;
 
 foreign_type! {
     pub unsafe type EvpMdCtx: Sync + Send {
@@ -17,7 +17,7 @@ impl Default for EvpMdCtx {
 }
 
 #[derive(Debug, Default, Clone, Copy)]
-pub enum DigestAlgorithm {
+pub enum MessageDigest {
     MD5,
     SHA1,
     SHA224,
@@ -34,13 +34,7 @@ pub enum DigestAlgorithm {
     BLAKE2b512,
 }
 
-impl From<DigestAlgorithm> for &'static str {
-    fn from(value: DigestAlgorithm) -> Self {
-        value.as_str()
-    }
-}
-
-impl DigestAlgorithm {
+impl MessageDigest {
     pub(crate) unsafe fn to_md(self) -> *const EVP_MD {
         match self {
             Self::MD5 => EVP_md5(),
@@ -81,31 +75,63 @@ impl DigestAlgorithm {
             Self::BLAKE2b512 => std::str::from_utf8_unchecked(SN_blake2b512.to_bytes()),
         }
     }
+}
 
-    pub fn hash(&self, message: &[u8]) -> Result<Vec<u8>, ErrorStack> {
+impl From<MessageDigest> for &'static str {
+    fn from(value: MessageDigest) -> Self {
+        value.as_str()
+    }
+}
+
+impl AsRef<[u8]> for MessageDigest {
+    fn as_ref(&self) -> &[u8] {
+        self.as_str().as_bytes()
+    }
+}
+
+#[derive(Clone)]
+pub struct DigestAlgorithm {
+    md: MessageDigest,
+    ctx: EvpMdCtx,
+}
+
+impl DigestAlgorithm {
+    pub fn init(md: MessageDigest) -> Self {
+        Self {
+            md,
+            ctx: EvpMdCtx::default(),
+        }
+    }
+
+    pub fn update(self, data: &[u8]) -> Self {
         unsafe {
-            let digest_alg = self.to_md();
-            let mdctx = EvpMdCtx::default();
-            crate::check_code(EVP_DigestInit_ex(
-                mdctx.as_ptr(),
-                digest_alg,
-                std::ptr::null_mut(),
-            ))?;
             crate::check_code(EVP_DigestUpdate(
-                mdctx.as_ptr(),
-                message.as_ptr() as *const _,
-                message.len(),
-            ))?;
+                self.ctx.as_ptr(),
+                data.as_ptr() as *const _,
+                data.len(),
+            ))
+            .expect("Data hash update failed");
+            self
+        }
+    }
+
+    pub fn finalize(self) -> Vec<u8> {
+        unsafe {
             let mut digest: Vec<u8> = Vec::with_capacity(EVP_MAX_MD_SIZE as usize);
             let mut digest_len: u32 = 0;
             crate::check_code(EVP_DigestFinal_ex(
-                mdctx.as_ptr(),
+                self.ctx.as_ptr(),
                 digest.as_mut_ptr(),
                 &mut digest_len,
-            ))?;
+            ))
+            .expect("Data hash finalize failed");
             digest.set_len(digest_len as usize);
-            Ok(digest)
+            digest
         }
+    }
+
+    pub fn get_md(&self) -> MessageDigest {
+        self.md
     }
 }
 
@@ -119,9 +145,9 @@ mod tests {
         let message = b"hello world";
         let expected_hash =
             hex!("b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9");
-        let result = DigestAlgorithm::SHA256
-            .hash(message.as_ref())
-            .expect("Hash computation failed");
+        let result = DigestAlgorithm::init(MessageDigest::SHA256)
+            .update(message.as_ref())
+            .finalize();
 
         assert_eq!(
             result, expected_hash,

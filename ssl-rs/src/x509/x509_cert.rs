@@ -4,7 +4,7 @@ use crate::{
     asn1::{Asn1IntegerRef, Asn1TimeRef},
     bio::SslBio,
     error::ErrorStack,
-    evp::{digest::DigestAlgorithm, EvpPkeyRef, Private, Public},
+    evp::{digest::MessageDigest, EvpPkeyRef, Private, Public},
     ssl::*,
 };
 
@@ -26,7 +26,7 @@ foreign_type! {
 pub enum X509Version {
     V1,
     V2,
-    V3
+    V3,
 }
 
 impl X509CertRef {
@@ -162,7 +162,7 @@ impl X509CertBuilder {
         }
     }
 
-    pub fn sign(self, pkey: &EvpPkeyRef<Private>, md: DigestAlgorithm) -> X509Cert {
+    pub fn sign(self, pkey: &EvpPkeyRef<Private>, md: MessageDigest) -> X509Cert {
         unsafe {
             crate::check_code(X509_sign(self.x509.as_ptr(), pkey.as_ptr(), md.to_md()))
                 .expect("Error on sign");
@@ -177,7 +177,7 @@ mod test {
         asn1::{Asn1Integer, Asn1Time},
         error::ErrorStack,
         evp::{
-            digest::DigestAlgorithm,
+            digest::MessageDigest,
             rsa::{RsaKey, RsaSize},
             EvpPkey, Private,
         },
@@ -239,7 +239,7 @@ mod test {
             .set_not_before(&not_before)
             .set_not_after(&not_after)
             .set_pubkey(&ppkey)
-            .sign(&pkey, DigestAlgorithm::SHA256);
+            .sign(&pkey, MessageDigest::SHA256);
 
         let serial = x509.serial();
         let subject = x509.subject();
