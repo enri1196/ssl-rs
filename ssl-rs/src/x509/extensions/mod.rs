@@ -69,7 +69,7 @@ impl X509ExtNid {
         unsafe { std::str::from_utf8_unchecked(LN_authority_key_identifier.to_bytes()) },
         NID_authority_key_identifier as i32,
     );
-    
+
     pub const SUBJECT_KEY_IDENTIFIER: X509ExtNid = X509ExtNid(
         unsafe { std::str::from_utf8_unchecked(SN_subject_key_identifier.to_bytes()) },
         unsafe { std::str::from_utf8_unchecked(LN_subject_key_identifier.to_bytes()) },

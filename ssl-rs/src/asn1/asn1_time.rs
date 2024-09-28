@@ -1,9 +1,9 @@
 use std::fmt::Display;
 
-use chrono::{DateTime, Utc};
-use foreign_types::{foreign_type, ForeignTypeRef};
+use chrono::{DateTime, Duration, Utc};
+use foreign_types::{foreign_type, ForeignType, ForeignTypeRef};
 
-use crate::{bio::SslBio, ssl::*};
+use crate::{bio::SslBio, error::ErrorStack, ssl::*};
 
 foreign_type! {
     pub unsafe type Asn1Time: Sync + Send {
@@ -39,6 +39,42 @@ impl PartialOrd for &Asn1TimeRef {
                 0 => Some(std::cmp::Ordering::Equal),
                 1 => Some(std::cmp::Ordering::Greater),
                 _ => None,
+            }
+        }
+    }
+}
+
+impl Asn1Time {
+    pub fn now() -> Result<Self, ErrorStack> {
+        unsafe {
+            let ptr = ASN1_TIME_set(std::ptr::null_mut(), 0);
+            if ptr.is_null() {
+                Err(ErrorStack::get())
+            } else {
+                Ok(Asn1Time::from_ptr(ptr))
+            }
+        }
+    }
+
+    // fn from_date_time(dt: &DateTime<Utc>) -> Result<Self, ErrorStack> {
+    //     unsafe {
+    //         let time = dt.timestamp() as time_t;
+    //         let ptr = ASN1_TIME_set(std::ptr::null_mut(), time);
+    //         if ptr.is_null() {
+    //             Err(ErrorStack::get())
+    //         } else {
+    //             Ok(Asn1Time::from_ptr(ptr))
+    //         }
+    //     }
+    // }
+
+    pub fn from_days(days: i64) -> Result<Self, ErrorStack> {
+        unsafe {
+            let ptr = ASN1_TIME_set(std::ptr::null_mut(), days);
+            if ptr.is_null() {
+                Err(ErrorStack::get())
+            } else {
+                Ok(Asn1Time::from_ptr(ptr))
             }
         }
     }

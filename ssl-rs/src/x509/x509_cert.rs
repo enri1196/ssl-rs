@@ -4,12 +4,12 @@ use crate::{
     asn1::{Asn1IntegerRef, Asn1TimeRef},
     bio::SslBio,
     error::ErrorStack,
-    evp::{EvpPkeyRef, Public},
+    evp::{digest::DigestAlgorithm, EvpPkeyRef, Private, Public},
     ssl::*,
 };
 
 use super::{
-    extensions::{ExtKeyUsage, KeyUsage},
+    extensions::{ExtKeyUsage, KeyUsage, ToExt},
     X509NameRef,
 };
 
@@ -76,8 +76,106 @@ impl TryFrom<&[u8]> for X509Cert {
     }
 }
 
+pub struct X509CertBuilder {
+    x509: X509Cert,
+}
+
+impl X509CertBuilder {
+    pub fn new() -> Self {
+        unsafe {
+            Self {
+                x509: X509Cert::from_ptr(X509_new()),
+            }
+        }
+    }
+
+    pub fn set_version(self, version: i64) -> Self {
+        unsafe {
+            crate::check_code(X509_set_version(self.x509.as_ptr(), version))
+                .expect("Error on set_version");
+            self
+        }
+    }
+
+    pub fn set_serial_number(self, serial: &Asn1IntegerRef) -> Self {
+        unsafe {
+            crate::check_code(X509_set_serialNumber(self.x509.as_ptr(), serial.as_ptr()))
+                .expect("Error on set_serial_number");
+            self
+        }
+    }
+
+    pub fn set_issuer_name(self, name: &X509NameRef) -> Self {
+        unsafe {
+            crate::check_code(X509_set_issuer_name(self.x509.as_ptr(), name.as_ptr()))
+                .expect("Error on set_issuer_name");
+            self
+        }
+    }
+
+    pub fn set_subject_name(self, name: &X509NameRef) -> Self {
+        unsafe {
+            crate::check_code(X509_set_subject_name(self.x509.as_ptr(), name.as_ptr()))
+                .expect("Error on set_subject_name");
+            self
+        }
+    }
+
+    pub fn set_not_before(self, not_before: &Asn1TimeRef) -> Self {
+        unsafe {
+            crate::check_code(X509_set1_notBefore(self.x509.as_ptr(), not_before.as_ptr()))
+                .expect("Error on set_not_before");
+            self
+        }
+    }
+
+    pub fn set_not_after(self, not_after: &Asn1TimeRef) -> Self {
+        unsafe {
+            crate::check_code(X509_set1_notAfter(self.x509.as_ptr(), not_after.as_ptr()))
+                .expect("Error on set_not_after");
+            self
+        }
+    }
+
+    pub fn set_pubkey(self, pkey: &EvpPkeyRef<Public>) -> Self {
+        unsafe {
+            crate::check_code(X509_set_pubkey(self.x509.as_ptr(), pkey.as_ptr()))
+                .expect("Error on set_pubkey");
+            self
+        }
+    }
+
+    pub fn add_extension(self, extension: impl ToExt) -> Self {
+        unsafe {
+            let ext = extension.to_ext();
+            crate::check_code(X509_add_ext(self.x509.as_ptr(), ext.as_ptr(), -1))
+                .expect("Error on add_extension");
+            self
+        }
+    }
+
+    pub fn sign(self, pkey: &EvpPkeyRef<Private>, md: DigestAlgorithm) -> X509Cert {
+        unsafe {
+            crate::check_code(X509_sign(self.x509.as_ptr(), pkey.as_ptr(), md.to_md()))
+                .expect("Error on sign");
+            self.x509
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
+    use crate::{
+        asn1::{Asn1Integer, Asn1Time},
+        error::ErrorStack,
+        evp::{
+            digest::DigestAlgorithm,
+            rsa::{RsaKey, RsaSize},
+            EvpPkey, Private,
+        },
+        x509::{X509CertBuilder, X509Entry, X509NameBuilder},
+    };
+
     use super::X509Cert;
 
     #[test]
@@ -104,5 +202,43 @@ mod test {
         println!("pub_key: {pub_key}");
         println!("Key Usage: {ku:?}");
         println!("Ext Key Usage: {eku:?}");
+    }
+
+    #[test]
+    pub fn test_cert_builder() -> Result<(), ErrorStack> {
+        // Create a serial number
+        let serial_number = Asn1Integer::from(1_u64);
+
+        // Build the subject and issuer name
+        let name = X509NameBuilder::new()
+            .add_entry(X509Entry::CN, "Test CA")
+            .build();
+
+        // Create not before and not after times
+        let not_before = Asn1Time::now()?;
+        let not_after = Asn1Time::from_days(365)?;
+
+        // Generate a key pair
+        let pkey: EvpPkey<Private> = RsaKey::new_rsa(RsaSize::Rs2048)?.into();
+        let ppkey = pkey.get_public()?;
+
+        // Build the certificate
+        let x509 = X509CertBuilder::new()
+            .set_version(2)
+            .set_serial_number(&serial_number)
+            .set_issuer_name(&name)
+            .set_subject_name(&name)
+            .set_not_before(&not_before)
+            .set_not_after(&not_after)
+            .set_pubkey(&ppkey)
+            .sign(&pkey, DigestAlgorithm::SHA256);
+
+        let serial = x509.serial();
+        println!("SERIAL: {serial}");
+    
+        // Print the certificate or perform assertions
+        // println!("Certificate: {}", x509);
+
+        Ok(())
     }
 }
