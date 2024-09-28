@@ -21,6 +21,14 @@ foreign_type! {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[repr(i64)]
+pub enum X509Version {
+    V1,
+    V2,
+    V3
+}
+
 impl X509CertRef {
     pub fn serial(&self) -> &Asn1IntegerRef {
         unsafe { Asn1IntegerRef::from_ptr(X509_get0_serialNumber(self.as_ptr()) as *mut _) }
@@ -89,9 +97,9 @@ impl X509CertBuilder {
         }
     }
 
-    pub fn set_version(self, version: i64) -> Self {
+    pub fn set_version(self, version: X509Version) -> Self {
         unsafe {
-            crate::check_code(X509_set_version(self.x509.as_ptr(), version))
+            crate::check_code(X509_set_version(self.x509.as_ptr(), version as i64))
                 .expect("Error on set_version");
             self
         }
@@ -173,7 +181,7 @@ mod test {
             rsa::{RsaKey, RsaSize},
             EvpPkey, Private,
         },
-        x509::{X509CertBuilder, X509Entry, X509NameBuilder},
+        x509::{X509CertBuilder, X509Entry, X509NameBuilder, X509Version},
     };
 
     use super::X509Cert;
@@ -224,7 +232,7 @@ mod test {
 
         // Build the certificate
         let x509 = X509CertBuilder::new()
-            .set_version(2)
+            .set_version(X509Version::V3)
             .set_serial_number(&serial_number)
             .set_issuer_name(&name)
             .set_subject_name(&name)
