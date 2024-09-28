@@ -242,8 +242,23 @@ mod test {
             .sign(&pkey, DigestAlgorithm::SHA256);
 
         let serial = x509.serial();
+        let subject = x509.subject();
+        let issuer = x509.issuer();
+        let not_before = x509.not_before();
+        let not_after = x509.not_after();
+        let pub_key = x509.pub_key();
+
         println!("SERIAL: {serial}");
-    
+        println!("subject: {subject}");
+        println!("issuer: {issuer}");
+        println!("not_before: {not_before}");
+        println!("not_after: {not_after}");
+        println!(
+            "not_after: {}",
+            not_after.to_date_time().unwrap().to_rfc3339()
+        );
+        println!("pub_key: {pub_key}");
+
         // Print the certificate or perform assertions
         // println!("Certificate: {}", x509);
 

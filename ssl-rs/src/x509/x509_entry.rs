@@ -31,6 +31,16 @@ pub enum X509Entry {
 
 impl Display for X509Entry {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.as_ref())
+        write!(f, "{:?}", self)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::x509::X509Entry;
+
+    #[test]
+    fn x509_entry() {
+        println!("{}", X509Entry::CN)
     }
 }
