@@ -8,6 +8,7 @@ pub mod mac_alg;
 pub mod rsa;
 
 use num_derive::FromPrimitive;
+use signature::{Signer, Verifier};
 use std::fmt::Display;
 
 use crate::{bio::SslBio, error::ErrorStack, ossl_param::OsslParamRef, ssl::*};
@@ -114,6 +115,19 @@ impl EvpPkeyRef<Private> {
     }
 }
 
+impl Signer<Vec<u8>> for EvpPkey<Private> {
+    fn try_sign(&self, msg: &[u8]) -> Result<Vec<u8>, signature::Error> {
+        self.as_ref().try_sign(msg)
+    }
+}
+
+impl Signer<Vec<u8>> for EvpPkeyRef<Private> {
+    fn try_sign(&self, msg: &[u8]) -> Result<Vec<u8>, signature::Error> {
+        self.sign(msg)
+            .map_err(signature::Error::from_source)
+    }
+}
+
 impl EvpPkey<Public> {
     pub fn verify_sign(&self, tbs: &[u8], signature: &[u8]) -> Result<bool, ErrorStack> {
         self.as_ref().verify_sign(tbs, signature)
@@ -139,6 +153,27 @@ impl EvpPkeyRef<Public> {
                 tbs.len(),
             ))?;
             Ok(verify == 1)
+        }
+    }
+}
+
+impl Verifier<Vec<u8>> for EvpPkey<Public> {
+    fn verify(&self, msg: &[u8], signature: &Vec<u8>) -> Result<(), signature::Error> {
+        self.as_ref().verify(msg, signature)
+    }
+}
+
+impl Verifier<Vec<u8>> for EvpPkeyRef<Public> {
+    fn verify(&self, msg: &[u8], signature: &Vec<u8>) -> Result<(), signature::Error> {
+        match self.verify_sign(msg, &signature) {
+            Ok(ok) => {
+                if ok {
+                    Ok(())
+                } else {
+                    Err(signature::Error::new())
+                }
+            },
+            Err(err) => Err(signature::Error::from_source(err)),
         }
     }
 }

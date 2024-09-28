@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use signature::{Signer, Verifier};
+
 use crate::{
     error::ErrorStack,
     evp::{EvpCtx, EvpId, EvpPkey, KeyType, Private, Public},
@@ -52,9 +54,21 @@ impl RsaKey<Private> {
     }
 }
 
+impl Signer<Vec<u8>> for RsaKey<Private> {
+    fn try_sign(&self, msg: &[u8]) -> Result<Vec<u8>, signature::Error> {
+        self.0.as_ref().try_sign(msg)
+    }
+}
+
 impl RsaKey<Public> {
     pub fn verify_sign(&self, tbs: &[u8], signature: &[u8]) -> Result<bool, ErrorStack> {
         self.0.verify_sign(tbs, signature)
+    }
+}
+
+impl Verifier<Vec<u8>> for RsaKey<Public> {
+    fn verify(&self, msg: &[u8], signature: &Vec<u8>) -> Result<(), signature::Error> {
+        self.0.as_ref().verify(msg, signature)
     }
 }
 
