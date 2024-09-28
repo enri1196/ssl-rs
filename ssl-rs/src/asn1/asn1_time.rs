@@ -1,6 +1,6 @@
 use std::fmt::Display;
 
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, Utc};
 use foreign_types::{foreign_type, ForeignType, ForeignTypeRef};
 
 use crate::{bio::SslBio, error::ErrorStack, ssl::*};
@@ -56,21 +56,25 @@ impl Asn1Time {
         }
     }
 
-    // fn from_date_time(dt: &DateTime<Utc>) -> Result<Self, ErrorStack> {
-    //     unsafe {
-    //         let time = dt.timestamp() as time_t;
-    //         let ptr = ASN1_TIME_set(std::ptr::null_mut(), time);
-    //         if ptr.is_null() {
-    //             Err(ErrorStack::get())
-    //         } else {
-    //             Ok(Asn1Time::from_ptr(ptr))
-    //         }
-    //     }
-    // }
-
     pub fn from_days(days: i64) -> Result<Self, ErrorStack> {
         unsafe {
             let ptr = ASN1_TIME_set(std::ptr::null_mut(), days);
+            if ptr.is_null() {
+                Err(ErrorStack::get())
+            } else {
+                Ok(Asn1Time::from_ptr(ptr))
+            }
+        }
+    }
+}
+
+impl TryFrom<&DateTime<Utc>> for Asn1Time {
+    type Error = ErrorStack;
+
+    fn try_from(value: &DateTime<Utc>) -> Result<Self, Self::Error> {
+        unsafe {
+            let time = value.timestamp() as time_t;
+            let ptr = ASN1_TIME_set(std::ptr::null_mut(), time);
             if ptr.is_null() {
                 Err(ErrorStack::get())
             } else {
