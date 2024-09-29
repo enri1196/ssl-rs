@@ -1,10 +1,10 @@
-use std::marker::PhantomData;
-use std::ptr;
+use crate::ssl::*;
+use digest::{Digest, Output, OutputSizeUser};
 use foreign_types::{foreign_type, ForeignType};
 use generic_array::{ArrayLength, GenericArray};
+use std::marker::PhantomData;
+use std::ptr;
 use typenum::{U16, U20, U28, U32, U48, U64};
-use digest::{Digest, Output, OutputSizeUser};
-use crate::ssl::*;
 
 foreign_type! {
     pub unsafe type EvpMdCtx: Sync + Send {
@@ -31,7 +31,6 @@ pub trait MessageDigestTrait: Clone + Default {
 #[derive(Debug, Default, Clone, Copy)]
 pub struct MD5;
 
-
 impl MessageDigestTrait for MD5 {
     type OutputSize = U16; // 16 bytes
     const OUTPUT_SIZE: usize = 16;
@@ -41,9 +40,7 @@ impl MessageDigestTrait for MD5 {
     }
 
     fn as_str() -> &'static str {
-        unsafe {
-            std::str::from_utf8_unchecked(SN_md5.to_bytes())
-        }
+        unsafe { std::str::from_utf8_unchecked(SN_md5.to_bytes()) }
     }
 }
 
@@ -59,9 +56,7 @@ impl MessageDigestTrait for SHA1 {
     }
 
     fn as_str() -> &'static str {
-        unsafe {
-            std::str::from_utf8_unchecked(SN_sha1.to_bytes())
-        }
+        unsafe { std::str::from_utf8_unchecked(SN_sha1.to_bytes()) }
     }
 }
 
@@ -77,9 +72,7 @@ impl MessageDigestTrait for SHA224 {
     }
 
     fn as_str() -> &'static str {
-        unsafe {
-            std::str::from_utf8_unchecked(SN_sha224.to_bytes())
-        }
+        unsafe { std::str::from_utf8_unchecked(SN_sha224.to_bytes()) }
     }
 }
 
@@ -95,9 +88,7 @@ impl MessageDigestTrait for SHA256 {
     }
 
     fn as_str() -> &'static str {
-        unsafe {
-            std::str::from_utf8_unchecked(SN_sha256.to_bytes())
-        }
+        unsafe { std::str::from_utf8_unchecked(SN_sha256.to_bytes()) }
     }
 }
 
@@ -113,9 +104,7 @@ impl MessageDigestTrait for SHA384 {
     }
 
     fn as_str() -> &'static str {
-        unsafe {
-            std::str::from_utf8_unchecked(SN_sha384.to_bytes())
-        }
+        unsafe { std::str::from_utf8_unchecked(SN_sha384.to_bytes()) }
     }
 }
 
@@ -131,9 +120,7 @@ impl MessageDigestTrait for SHA512 {
     }
 
     fn as_str() -> &'static str {
-        unsafe {
-            std::str::from_utf8_unchecked(SN_sha512.to_bytes())
-        }
+        unsafe { std::str::from_utf8_unchecked(SN_sha512.to_bytes()) }
     }
 }
 
@@ -149,9 +136,7 @@ impl MessageDigestTrait for RIPEMD160 {
     }
 
     fn as_str() -> &'static str {
-        unsafe {
-            std::str::from_utf8_unchecked(SN_ripemd160.to_bytes())
-        }
+        unsafe { std::str::from_utf8_unchecked(SN_ripemd160.to_bytes()) }
     }
 }
 
@@ -167,9 +152,7 @@ impl MessageDigestTrait for Whirlpool {
     }
 
     fn as_str() -> &'static str {
-        unsafe {
-            std::str::from_utf8_unchecked(SN_whirlpool.to_bytes())
-        }
+        unsafe { std::str::from_utf8_unchecked(SN_whirlpool.to_bytes()) }
     }
 }
 
@@ -185,9 +168,7 @@ impl MessageDigestTrait for SHA3_224 {
     }
 
     fn as_str() -> &'static str {
-        unsafe {
-            std::str::from_utf8_unchecked(SN_sha3_224.to_bytes())
-        }
+        unsafe { std::str::from_utf8_unchecked(SN_sha3_224.to_bytes()) }
     }
 }
 
@@ -203,9 +184,7 @@ impl MessageDigestTrait for SHA3_256 {
     }
 
     fn as_str() -> &'static str {
-        unsafe {
-            std::str::from_utf8_unchecked(SN_sha3_256.to_bytes())
-        }
+        unsafe { std::str::from_utf8_unchecked(SN_sha3_256.to_bytes()) }
     }
 }
 
@@ -221,9 +200,7 @@ impl MessageDigestTrait for SHA3_384 {
     }
 
     fn as_str() -> &'static str {
-        unsafe {
-            std::str::from_utf8_unchecked(SN_sha3_384.to_bytes())
-        }
+        unsafe { std::str::from_utf8_unchecked(SN_sha3_384.to_bytes()) }
     }
 }
 
@@ -239,9 +216,7 @@ impl MessageDigestTrait for SHA3_512 {
     }
 
     fn as_str() -> &'static str {
-        unsafe {
-            std::str::from_utf8_unchecked(SN_sha3_512.to_bytes())
-        }
+        unsafe { std::str::from_utf8_unchecked(SN_sha3_512.to_bytes()) }
     }
 }
 
@@ -257,9 +232,7 @@ impl MessageDigestTrait for BLAKE2b512 {
     }
 
     fn as_str() -> &'static str {
-        unsafe {
-            std::str::from_utf8_unchecked(SN_blake2b512.to_bytes())
-        }
+        unsafe { std::str::from_utf8_unchecked(SN_blake2b512.to_bytes()) }
     }
 }
 
@@ -277,8 +250,12 @@ impl<MD: MessageDigestTrait> Digest for DigestAlgorithm<MD> {
     fn new() -> Self {
         unsafe {
             let ctx = EvpMdCtx::default();
-            crate::check_code(EVP_DigestInit_ex(ctx.as_ptr(), MD::to_md(), ptr::null_mut()))
-                .expect("Failed to initialize digest context");
+            crate::check_code(EVP_DigestInit_ex(
+                ctx.as_ptr(),
+                MD::to_md(),
+                ptr::null_mut(),
+            ))
+            .expect("Failed to initialize digest context");
             Self {
                 md: PhantomData,
                 ctx,
@@ -356,8 +333,12 @@ impl<MD: MessageDigestTrait> Digest for DigestAlgorithm<MD> {
         Self: digest::Reset,
     {
         unsafe {
-            crate::check_code(EVP_DigestInit_ex(self.ctx.as_ptr(), MD::to_md(), ptr::null_mut()))
-                .expect("Failed to reset digest context");
+            crate::check_code(EVP_DigestInit_ex(
+                self.ctx.as_ptr(),
+                MD::to_md(),
+                ptr::null_mut(),
+            ))
+            .expect("Failed to reset digest context");
         }
     }
 
@@ -417,7 +398,8 @@ mod tests {
     }
 
     #[test]
-    fn test_whirlpool_hash() { // TODO: CRASH
+    fn test_whirlpool_hash() {
+        // TODO: CRASH
         let message = b"hello world";
         let expected_hash = hex!(
             "e45c86e04a1bcfa3a625b48ebcb1c3e5e7f7a25b2da41d97f0fb5f7b98778c5db1e2e282cae6a1a8e71b464c5f4749a0d037d86dfe3d2c36721e35315be8b8f1"
@@ -432,7 +414,8 @@ mod tests {
     }
 
     #[test]
-    fn test_sha3_256_hash() { // TODO: NO MATCH
+    fn test_sha3_256_hash() {
+        // TODO: NO MATCH
         let message = b"hello world";
         let expected_hash =
             hex!("644bcc7e56437304038e0d55a8dbd0b9ba61a659bbf2f21c3f9dbaf0c5af8e07");
@@ -446,7 +429,8 @@ mod tests {
     }
 
     #[test]
-    fn test_blake2b512_hash() { // TODO: NO MATCH
+    fn test_blake2b512_hash() {
+        // TODO: NO MATCH
         let message = b"hello world";
         let expected_hash = hex!(
             "6f56a1f7a0a306a8531ffb39a7c193bbbc8e3d81f262f947e47e56e62e37e6cb232d212e666ee74c6c88c765f3fd472f2c1396e6173346e7fb47b37a36f5e0b3"

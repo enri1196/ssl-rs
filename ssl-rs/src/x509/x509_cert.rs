@@ -177,7 +177,9 @@ mod test {
         asn1::{Asn1Integer, Asn1Time},
         error::ErrorStack,
         evp::{
-            digest::SHA256, rsa::{RsaKey, RsaSize}, EvpPkey, Private
+            digest::SHA256,
+            rsa::{RsaKey, RsaSize},
+            EvpPkey, Private,
         },
         x509::{X509CertBuilder, X509Entry, X509NameBuilder, X509Version},
     };

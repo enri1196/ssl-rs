@@ -276,8 +276,8 @@ mod tests {
             0x2e, 0x32, 0xcf, 0xf7,
         ];
 
-        let hmac_result = EvpMac::compute_hmac::<SHA256>(&key, &data)
-            .expect("HMAC computation failed");
+        let hmac_result =
+            EvpMac::compute_hmac::<SHA256>(&key, &data).expect("HMAC computation failed");
 
         assert_eq!(
             hmac_result, expected_hmac,

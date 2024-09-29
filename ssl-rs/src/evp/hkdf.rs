@@ -16,10 +16,7 @@ impl Hkdf {
         unsafe {
             let hkdf_ctx = EvpCtx::from(EvpId::Hkdf);
             crate::check_code(EVP_PKEY_derive_init(hkdf_ctx.as_ptr()))?;
-            crate::check_code(EVP_PKEY_CTX_set_hkdf_md(
-                hkdf_ctx.as_ptr(),
-                MD::to_md(),
-            ))?;
+            crate::check_code(EVP_PKEY_CTX_set_hkdf_md(hkdf_ctx.as_ptr(), MD::to_md()))?;
             crate::check_code(EVP_PKEY_CTX_set1_hkdf_salt(
                 hkdf_ctx.as_ptr(),
                 salt.as_ptr(),
@@ -90,7 +87,8 @@ mod tests {
         ];
 
         // Perform key derivation
-        let derived = Hkdf::derive_key::<SHA256>(salt, &ikm, Some(info), 32).expect("Key derivation failed");
+        let derived =
+            Hkdf::derive_key::<SHA256>(salt, &ikm, Some(info), 32).expect("Key derivation failed");
 
         // Assert that the derived key matches the expected OKM
         assert_eq!(
