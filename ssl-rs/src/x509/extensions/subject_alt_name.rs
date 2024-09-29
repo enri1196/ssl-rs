@@ -87,7 +87,7 @@ impl Display for SubjectAlternativeName {
         // Join all SAN entries with commas
         value.push_str(&san_entries.join(","));
 
-        write!(f, "{}", value)
+        write!(f, "{value}")
     }
 }
 

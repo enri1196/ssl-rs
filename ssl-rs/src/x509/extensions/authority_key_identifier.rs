@@ -126,10 +126,6 @@ mod tests {
         println!("OID: {}", aki_ext.get_oid());
         println!("DATA: {}", aki.to_string());
 
-        // The OID for Authority Key Identifier is "2.5.29.35"
         assert_eq!("2.5.29.35", aki_ext.get_oid());
-
-        // Additional assertions can be added here to verify the content of the extension
-        // For example, parsing the extension and checking individual AKI entries
     }
 }
