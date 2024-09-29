@@ -4,6 +4,7 @@ mod ext_key_usage;
 mod issuer_alt_name;
 mod key_usage;
 mod subject_alt_name;
+mod subject_key_indentifier;
 
 pub use authority_key_identifier::*;
 pub use basic_constraints::*;
@@ -11,6 +12,7 @@ pub use ext_key_usage::*;
 pub use issuer_alt_name::*;
 pub use key_usage::*;
 pub use subject_alt_name::*;
+pub use subject_key_indentifier::*;
 
 use super::X509Ext;
 use crate::ssl::*;
