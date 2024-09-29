@@ -30,16 +30,7 @@ pub trait MessageDigestTrait: Clone + Default {
 
 #[derive(Debug, Default, Clone, Copy)]
 pub struct MD5;
-#[derive(Debug, Default, Clone, Copy)]
-pub struct SHA1;
-#[derive(Debug, Default, Clone, Copy)]
-pub struct SHA224;
-#[derive(Debug, Default, Clone, Copy)]
-pub struct SHA256;
-#[derive(Debug, Default, Clone, Copy)]
-pub struct SHA384;
-#[derive(Debug, Default, Clone, Copy)]
-pub struct SHA512;
+
 
 impl MessageDigestTrait for MD5 {
     type OutputSize = U16; // 16 bytes
@@ -50,9 +41,14 @@ impl MessageDigestTrait for MD5 {
     }
 
     fn as_str() -> &'static str {
-        "md5"
+        unsafe {
+            std::str::from_utf8_unchecked(SN_md5.to_bytes())
+        }
     }
 }
+
+#[derive(Debug, Default, Clone, Copy)]
+pub struct SHA1;
 
 impl MessageDigestTrait for SHA1 {
     type OutputSize = U20; // 20 bytes
@@ -63,9 +59,14 @@ impl MessageDigestTrait for SHA1 {
     }
 
     fn as_str() -> &'static str {
-        "sha1"
+        unsafe {
+            std::str::from_utf8_unchecked(SN_sha1.to_bytes())
+        }
     }
 }
+
+#[derive(Debug, Default, Clone, Copy)]
+pub struct SHA224;
 
 impl MessageDigestTrait for SHA224 {
     type OutputSize = U28; // 28 bytes
@@ -76,9 +77,14 @@ impl MessageDigestTrait for SHA224 {
     }
 
     fn as_str() -> &'static str {
-        "sha224"
+        unsafe {
+            std::str::from_utf8_unchecked(SN_sha224.to_bytes())
+        }
     }
 }
+
+#[derive(Debug, Default, Clone, Copy)]
+pub struct SHA256;
 
 impl MessageDigestTrait for SHA256 {
     type OutputSize = U32; // 32 bytes
@@ -89,9 +95,14 @@ impl MessageDigestTrait for SHA256 {
     }
 
     fn as_str() -> &'static str {
-        "sha256"
+        unsafe {
+            std::str::from_utf8_unchecked(SN_sha256.to_bytes())
+        }
     }
 }
+
+#[derive(Debug, Default, Clone, Copy)]
+pub struct SHA384;
 
 impl MessageDigestTrait for SHA384 {
     type OutputSize = U48; // 48 bytes
@@ -102,9 +113,14 @@ impl MessageDigestTrait for SHA384 {
     }
 
     fn as_str() -> &'static str {
-        "sha384"
+        unsafe {
+            std::str::from_utf8_unchecked(SN_sha384.to_bytes())
+        }
     }
 }
+
+#[derive(Debug, Default, Clone, Copy)]
+pub struct SHA512;
 
 impl MessageDigestTrait for SHA512 {
     type OutputSize = U64; // 64 bytes
@@ -115,22 +131,148 @@ impl MessageDigestTrait for SHA512 {
     }
 
     fn as_str() -> &'static str {
-        "sha512"
+        unsafe {
+            std::str::from_utf8_unchecked(SN_sha512.to_bytes())
+        }
+    }
+}
+
+#[derive(Debug, Default, Clone, Copy)]
+pub struct RIPEMD160;
+
+impl MessageDigestTrait for RIPEMD160 {
+    type OutputSize = U20; // 20 bytes
+    const OUTPUT_SIZE: usize = 20;
+
+    unsafe fn to_md() -> *const EVP_MD {
+        EVP_ripemd160()
+    }
+
+    fn as_str() -> &'static str {
+        unsafe {
+            std::str::from_utf8_unchecked(SN_ripemd160.to_bytes())
+        }
+    }
+}
+
+#[derive(Debug, Default, Clone, Copy)]
+pub struct Whirlpool;
+
+impl MessageDigestTrait for Whirlpool {
+    type OutputSize = U64; // 64 bytes
+    const OUTPUT_SIZE: usize = 64;
+
+    unsafe fn to_md() -> *const EVP_MD {
+        EVP_whirlpool()
+    }
+
+    fn as_str() -> &'static str {
+        unsafe {
+            std::str::from_utf8_unchecked(SN_whirlpool.to_bytes())
+        }
+    }
+}
+
+#[derive(Debug, Default, Clone, Copy)]
+pub struct SHA3_224;
+
+impl MessageDigestTrait for SHA3_224 {
+    type OutputSize = U28; // 28 bytes
+    const OUTPUT_SIZE: usize = 28;
+
+    unsafe fn to_md() -> *const EVP_MD {
+        EVP_sha3_224()
+    }
+
+    fn as_str() -> &'static str {
+        unsafe {
+            std::str::from_utf8_unchecked(SN_sha3_224.to_bytes())
+        }
+    }
+}
+
+#[derive(Debug, Default, Clone, Copy)]
+pub struct SHA3_256;
+
+impl MessageDigestTrait for SHA3_256 {
+    type OutputSize = U32; // 32 bytes
+    const OUTPUT_SIZE: usize = 32;
+
+    unsafe fn to_md() -> *const EVP_MD {
+        EVP_sha3_256()
+    }
+
+    fn as_str() -> &'static str {
+        unsafe {
+            std::str::from_utf8_unchecked(SN_sha3_256.to_bytes())
+        }
+    }
+}
+
+#[derive(Debug, Default, Clone, Copy)]
+pub struct SHA3_384;
+
+impl MessageDigestTrait for SHA3_384 {
+    type OutputSize = U48; // 48 bytes
+    const OUTPUT_SIZE: usize = 48;
+
+    unsafe fn to_md() -> *const EVP_MD {
+        EVP_sha3_384()
+    }
+
+    fn as_str() -> &'static str {
+        unsafe {
+            std::str::from_utf8_unchecked(SN_sha3_384.to_bytes())
+        }
+    }
+}
+
+#[derive(Debug, Default, Clone, Copy)]
+pub struct SHA3_512;
+
+impl MessageDigestTrait for SHA3_512 {
+    type OutputSize = U64; // 64 bytes
+    const OUTPUT_SIZE: usize = 64;
+
+    unsafe fn to_md() -> *const EVP_MD {
+        EVP_sha3_512()
+    }
+
+    fn as_str() -> &'static str {
+        unsafe {
+            std::str::from_utf8_unchecked(SN_sha3_512.to_bytes())
+        }
+    }
+}
+
+#[derive(Debug, Default, Clone, Copy)]
+pub struct BLAKE2b512;
+
+impl MessageDigestTrait for BLAKE2b512 {
+    type OutputSize = U64; // 64 bytes
+    const OUTPUT_SIZE: usize = 64;
+
+    unsafe fn to_md() -> *const EVP_MD {
+        EVP_blake2b512()
+    }
+
+    fn as_str() -> &'static str {
+        unsafe {
+            std::str::from_utf8_unchecked(SN_blake2b512.to_bytes())
+        }
     }
 }
 
 #[derive(Clone)]
-pub struct DigestAlgorithm<MD: MessageDigestTrait + Clone> {
+pub struct DigestAlgorithm<MD: MessageDigestTrait> {
     md: PhantomData<MD>,
     ctx: EvpMdCtx,
 }
 
-// Implement OutputSizeUser for DigestAlgorithm
 impl<MD: MessageDigestTrait> OutputSizeUser for DigestAlgorithm<MD> {
     type OutputSize = MD::OutputSize;
 }
 
-// Implement the Digest trait
 impl<MD: MessageDigestTrait> Digest for DigestAlgorithm<MD> {
     fn new() -> Self {
         unsafe {
@@ -258,6 +400,63 @@ mod tests {
             result.as_slice(),
             &expected_hash[..],
             "The hash does not match the expected value"
+        );
+    }
+
+    #[test]
+    fn test_ripemd160_hash() {
+        let message = b"hello world";
+        let expected_hash = hex!("98c615784ccb5fe5936fbc0cbe9dfdb408d92f0f");
+        let result = DigestAlgorithm::<RIPEMD160>::digest(message);
+
+        assert_eq!(
+            result.as_slice(),
+            &expected_hash[..],
+            "The RIPEMD160 hash does not match the expected value"
+        );
+    }
+
+    #[test]
+    fn test_whirlpool_hash() { // TODO: CRASH
+        let message = b"hello world";
+        let expected_hash = hex!(
+            "e45c86e04a1bcfa3a625b48ebcb1c3e5e7f7a25b2da41d97f0fb5f7b98778c5db1e2e282cae6a1a8e71b464c5f4749a0d037d86dfe3d2c36721e35315be8b8f1"
+        );
+        let result = DigestAlgorithm::<Whirlpool>::digest(message);
+
+        assert_eq!(
+            result.as_slice(),
+            &expected_hash[..],
+            "The Whirlpool hash does not match the expected value"
+        );
+    }
+
+    #[test]
+    fn test_sha3_256_hash() { // TODO: NO MATCH
+        let message = b"hello world";
+        let expected_hash =
+            hex!("644bcc7e56437304038e0d55a8dbd0b9ba61a659bbf2f21c3f9dbaf0c5af8e07");
+        let result = DigestAlgorithm::<SHA3_256>::digest(message);
+
+        assert_eq!(
+            result.as_slice(),
+            &expected_hash[..],
+            "The SHA3-256 hash does not match the expected value"
+        );
+    }
+
+    #[test]
+    fn test_blake2b512_hash() { // TODO: NO MATCH
+        let message = b"hello world";
+        let expected_hash = hex!(
+            "6f56a1f7a0a306a8531ffb39a7c193bbbc8e3d81f262f947e47e56e62e37e6cb232d212e666ee74c6c88c765f3fd472f2c1396e6173346e7fb47b37a36f5e0b3"
+        );
+        let result = DigestAlgorithm::<BLAKE2b512>::digest(message);
+
+        assert_eq!(
+            result.as_slice(),
+            &expected_hash[..],
+            "The BLAKE2b-512 hash does not match the expected value"
         );
     }
 }
