@@ -1,5 +1,9 @@
+use std::marker::PhantomData;
+use std::ptr;
 use foreign_types::{foreign_type, ForeignType};
-
+use generic_array::{ArrayLength, GenericArray};
+use typenum::{U16, U20, U28, U32, U48, U64};
+use digest::{Digest, Output, OutputSizeUser};
 use crate::ssl::*;
 
 foreign_type! {
@@ -16,108 +20,155 @@ impl Default for EvpMdCtx {
     }
 }
 
+pub trait MessageDigestTrait: Clone + Default {
+    type OutputSize: ArrayLength<u8> + 'static;
+    const OUTPUT_SIZE: usize;
+
+    unsafe fn to_md() -> *const EVP_MD;
+    fn as_str() -> &'static str;
+}
+
 #[derive(Debug, Default, Clone, Copy)]
-pub enum MessageDigest {
-    MD5,
-    SHA1,
-    SHA224,
-    #[default]
-    SHA256,
-    SHA384,
-    SHA512,
-    RIPEMD160,
-    Whirlpool,
-    SHA3224,
-    SHA3256,
-    SHA3384,
-    SHA3512,
-    BLAKE2b512,
-}
+pub struct MD5;
+#[derive(Debug, Default, Clone, Copy)]
+pub struct SHA1;
+#[derive(Debug, Default, Clone, Copy)]
+pub struct SHA224;
+#[derive(Debug, Default, Clone, Copy)]
+pub struct SHA256;
+#[derive(Debug, Default, Clone, Copy)]
+pub struct SHA384;
+#[derive(Debug, Default, Clone, Copy)]
+pub struct SHA512;
 
-impl MessageDigest {
-    pub(crate) unsafe fn to_md(self) -> *const EVP_MD {
-        match self {
-            Self::MD5 => EVP_md5(),
-            Self::SHA1 => EVP_sha1(),
-            Self::SHA224 => EVP_sha224(),
-            Self::SHA256 => EVP_sha256(),
-            Self::SHA384 => EVP_sha384(),
-            Self::SHA512 => EVP_sha512(),
-            Self::RIPEMD160 => EVP_ripemd160(),
-            Self::Whirlpool => EVP_whirlpool(),
-            Self::SHA3224 => EVP_sha3_224(),
-            Self::SHA3256 => EVP_sha3_256(),
-            Self::SHA3384 => EVP_sha3_384(),
-            Self::SHA3512 => EVP_sha3_512(),
-            Self::BLAKE2b512 => EVP_blake2b512(),
-        }
+impl MessageDigestTrait for MD5 {
+    type OutputSize = U16; // 16 bytes
+    const OUTPUT_SIZE: usize = 16;
+
+    unsafe fn to_md() -> *const EVP_MD {
+        EVP_md5()
     }
 
-    pub(crate) const fn as_str(&self) -> &'static str {
-        // SAFETY: all the Cstrings are compile time constants known to be safe
-        unsafe { self.inner_as_str() }
-    }
-
-    const unsafe fn inner_as_str(&self) -> &'static str {
-        match self {
-            Self::MD5 => std::str::from_utf8_unchecked(SN_md5.to_bytes()),
-            Self::SHA1 => std::str::from_utf8_unchecked(SN_sha1.to_bytes()),
-            Self::SHA224 => std::str::from_utf8_unchecked(SN_sha224.to_bytes()),
-            Self::SHA256 => std::str::from_utf8_unchecked(SN_sha256.to_bytes()),
-            Self::SHA384 => std::str::from_utf8_unchecked(SN_sha384.to_bytes()),
-            Self::SHA512 => std::str::from_utf8_unchecked(SN_sha512.to_bytes()),
-            Self::RIPEMD160 => std::str::from_utf8_unchecked(SN_ripemd160.to_bytes()),
-            Self::Whirlpool => std::str::from_utf8_unchecked(SN_whirlpool.to_bytes()),
-            Self::SHA3224 => std::str::from_utf8_unchecked(SN_sha3_224.to_bytes()),
-            Self::SHA3256 => std::str::from_utf8_unchecked(SN_sha3_256.to_bytes()),
-            Self::SHA3384 => std::str::from_utf8_unchecked(SN_sha3_384.to_bytes()),
-            Self::SHA3512 => std::str::from_utf8_unchecked(SN_sha3_512.to_bytes()),
-            Self::BLAKE2b512 => std::str::from_utf8_unchecked(SN_blake2b512.to_bytes()),
-        }
+    fn as_str() -> &'static str {
+        "md5"
     }
 }
 
-impl From<MessageDigest> for &'static str {
-    fn from(value: MessageDigest) -> Self {
-        value.as_str()
+impl MessageDigestTrait for SHA1 {
+    type OutputSize = U20; // 20 bytes
+    const OUTPUT_SIZE: usize = 20;
+
+    unsafe fn to_md() -> *const EVP_MD {
+        EVP_sha1()
+    }
+
+    fn as_str() -> &'static str {
+        "sha1"
     }
 }
 
-impl AsRef<[u8]> for MessageDigest {
-    fn as_ref(&self) -> &[u8] {
-        self.as_str().as_bytes()
+impl MessageDigestTrait for SHA224 {
+    type OutputSize = U28; // 28 bytes
+    const OUTPUT_SIZE: usize = 28;
+
+    unsafe fn to_md() -> *const EVP_MD {
+        EVP_sha224()
+    }
+
+    fn as_str() -> &'static str {
+        "sha224"
+    }
+}
+
+impl MessageDigestTrait for SHA256 {
+    type OutputSize = U32; // 32 bytes
+    const OUTPUT_SIZE: usize = 32;
+
+    unsafe fn to_md() -> *const EVP_MD {
+        EVP_sha256()
+    }
+
+    fn as_str() -> &'static str {
+        "sha256"
+    }
+}
+
+impl MessageDigestTrait for SHA384 {
+    type OutputSize = U48; // 48 bytes
+    const OUTPUT_SIZE: usize = 48;
+
+    unsafe fn to_md() -> *const EVP_MD {
+        EVP_sha384()
+    }
+
+    fn as_str() -> &'static str {
+        "sha384"
+    }
+}
+
+impl MessageDigestTrait for SHA512 {
+    type OutputSize = U64; // 64 bytes
+    const OUTPUT_SIZE: usize = 64;
+
+    unsafe fn to_md() -> *const EVP_MD {
+        EVP_sha512()
+    }
+
+    fn as_str() -> &'static str {
+        "sha512"
     }
 }
 
 #[derive(Clone)]
-pub struct DigestAlgorithm {
-    md: MessageDigest,
+pub struct DigestAlgorithm<MD: MessageDigestTrait + Clone> {
+    md: PhantomData<MD>,
     ctx: EvpMdCtx,
 }
 
-impl DigestAlgorithm {
-    pub fn init(md: MessageDigest) -> Self {
-        Self {
-            md,
-            ctx: EvpMdCtx::default(),
+// Implement OutputSizeUser for DigestAlgorithm
+impl<MD: MessageDigestTrait> OutputSizeUser for DigestAlgorithm<MD> {
+    type OutputSize = MD::OutputSize;
+}
+
+// Implement the Digest trait
+impl<MD: MessageDigestTrait> Digest for DigestAlgorithm<MD> {
+    fn new() -> Self {
+        unsafe {
+            let ctx = EvpMdCtx::default();
+            crate::check_code(EVP_DigestInit_ex(ctx.as_ptr(), MD::to_md(), ptr::null_mut()))
+                .expect("Failed to initialize digest context");
+            Self {
+                md: PhantomData,
+                ctx,
+            }
         }
     }
 
-    pub fn update(self, data: &[u8]) -> Self {
+    fn new_with_prefix(data: impl AsRef<[u8]>) -> Self {
+        let mut hasher = Self::new();
+        hasher.update(data);
+        hasher
+    }
+
+    fn update(&mut self, data: impl AsRef<[u8]>) {
         unsafe {
             crate::check_code(EVP_DigestUpdate(
                 self.ctx.as_ptr(),
-                data.as_ptr() as *const _,
-                data.len(),
+                data.as_ref().as_ptr() as *const _,
+                data.as_ref().len(),
             ))
             .expect("Data hash update failed");
-            self
         }
     }
 
-    pub fn finalize(self) -> Vec<u8> {
+    fn chain_update(mut self, data: impl AsRef<[u8]>) -> Self {
+        self.update(data);
+        self
+    }
+
+    fn finalize(self) -> Output<Self> {
         unsafe {
-            let mut digest: Vec<u8> = Vec::with_capacity(EVP_MAX_MD_SIZE as usize);
+            let mut digest = GenericArray::<u8, MD::OutputSize>::default();
             let mut digest_len: u32 = 0;
             crate::check_code(EVP_DigestFinal_ex(
                 self.ctx.as_ptr(),
@@ -125,13 +176,69 @@ impl DigestAlgorithm {
                 &mut digest_len,
             ))
             .expect("Data hash finalize failed");
-            digest.set_len(digest_len as usize);
             digest
         }
     }
 
-    pub fn get_md(&self) -> MessageDigest {
-        self.md
+    fn finalize_into(self, out: &mut Output<Self>) {
+        unsafe {
+            let mut digest_len: u32 = 0;
+            crate::check_code(EVP_DigestFinal_ex(
+                self.ctx.as_ptr(),
+                out.as_mut_ptr(),
+                &mut digest_len,
+            ))
+            .expect("Data hash finalize failed");
+        }
+    }
+
+    fn finalize_reset(&mut self) -> Output<Self>
+    where
+        Self: digest::FixedOutputReset,
+    {
+        let result = self.clone().finalize();
+        self.reset();
+        result
+    }
+
+    fn finalize_into_reset(&mut self, out: &mut Output<Self>)
+    where
+        Self: digest::FixedOutputReset,
+    {
+        self.clone().finalize_into(out);
+        self.reset();
+    }
+
+    fn reset(&mut self)
+    where
+        Self: digest::Reset,
+    {
+        unsafe {
+            crate::check_code(EVP_DigestInit_ex(self.ctx.as_ptr(), MD::to_md(), ptr::null_mut()))
+                .expect("Failed to reset digest context");
+        }
+    }
+
+    fn output_size() -> usize {
+        MD::OUTPUT_SIZE
+    }
+
+    fn digest(data: impl AsRef<[u8]>) -> Output<Self> {
+        let mut hasher = Self::new();
+        hasher.update(data);
+        hasher.finalize()
+    }
+}
+
+impl<MD: MessageDigestTrait> Default for DigestAlgorithm<MD> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<MD: MessageDigestTrait> std::fmt::Debug for DigestAlgorithm<MD> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "DigestAlgorithm<{}>", MD::as_str())
     }
 }
 
@@ -141,16 +248,15 @@ mod tests {
     use hex_literal::hex;
 
     #[test]
-    fn test_hash_function() {
+    fn test_sha256_hash() {
         let message = b"hello world";
         let expected_hash =
             hex!("b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9");
-        let result = DigestAlgorithm::init(MessageDigest::SHA256)
-            .update(message.as_ref())
-            .finalize();
+        let result = DigestAlgorithm::<SHA256>::digest(message);
 
         assert_eq!(
-            result, expected_hash,
+            result.as_slice(),
+            &expected_hash[..],
             "The hash does not match the expected value"
         );
     }

@@ -1,13 +1,13 @@
 use foreign_types::ForeignType;
 
-use super::{digest::MessageDigest, evp_ctx::EvpCtx, EvpId};
+use super::{digest::MessageDigestTrait, evp_ctx::EvpCtx, EvpId};
 use crate::{error::ErrorStack, ssl::*};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Hkdf(Vec<u8>);
 
 impl Hkdf {
-    pub fn derive_key(
+    pub fn derive_key<MD: MessageDigestTrait>(
         salt: &[u8],
         key: &[u8],
         info: Option<&[u8]>,
@@ -18,7 +18,7 @@ impl Hkdf {
             crate::check_code(EVP_PKEY_derive_init(hkdf_ctx.as_ptr()))?;
             crate::check_code(EVP_PKEY_CTX_set_hkdf_md(
                 hkdf_ctx.as_ptr(),
-                MessageDigest::SHA256.to_md(),
+                MD::to_md(),
             ))?;
             crate::check_code(EVP_PKEY_CTX_set1_hkdf_salt(
                 hkdf_ctx.as_ptr(),
@@ -67,6 +67,8 @@ impl Hkdf {
 
 #[cfg(test)]
 mod tests {
+    use crate::evp::digest::SHA256;
+
     use super::*;
 
     #[test]
@@ -88,7 +90,7 @@ mod tests {
         ];
 
         // Perform key derivation
-        let derived = Hkdf::derive_key(salt, &ikm, Some(info), 32).expect("Key derivation failed");
+        let derived = Hkdf::derive_key::<SHA256>(salt, &ikm, Some(info), 32).expect("Key derivation failed");
 
         // Assert that the derived key matches the expected OKM
         assert_eq!(

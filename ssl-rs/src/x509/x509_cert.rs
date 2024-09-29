@@ -4,7 +4,7 @@ use crate::{
     asn1::{Asn1IntegerRef, Asn1TimeRef},
     bio::SslBio,
     error::ErrorStack,
-    evp::{digest::MessageDigest, EvpPkeyRef, Private, Public},
+    evp::{digest::MessageDigestTrait, EvpPkeyRef, Private, Public},
     ssl::*,
 };
 
@@ -162,9 +162,9 @@ impl X509CertBuilder {
         }
     }
 
-    pub fn sign(self, pkey: &EvpPkeyRef<Private>, md: MessageDigest) -> X509Cert {
+    pub fn sign<MD: MessageDigestTrait>(self, pkey: &EvpPkeyRef<Private>) -> X509Cert {
         unsafe {
-            crate::check_code(X509_sign(self.x509.as_ptr(), pkey.as_ptr(), md.to_md()))
+            crate::check_code(X509_sign(self.x509.as_ptr(), pkey.as_ptr(), MD::to_md()))
                 .expect("Error on sign");
             self.x509
         }
@@ -177,9 +177,7 @@ mod test {
         asn1::{Asn1Integer, Asn1Time},
         error::ErrorStack,
         evp::{
-            digest::MessageDigest,
-            rsa::{RsaKey, RsaSize},
-            EvpPkey, Private,
+            digest::SHA256, rsa::{RsaKey, RsaSize}, EvpPkey, Private
         },
         x509::{X509CertBuilder, X509Entry, X509NameBuilder, X509Version},
     };
@@ -239,7 +237,7 @@ mod test {
             .set_not_before(&not_before)
             .set_not_after(&not_after)
             .set_pubkey(&ppkey)
-            .sign(&pkey, MessageDigest::SHA256);
+            .sign::<SHA256>(&pkey);
 
         let serial = x509.serial();
         let subject = x509.subject();
