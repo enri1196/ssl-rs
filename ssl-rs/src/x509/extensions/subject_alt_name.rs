@@ -1,4 +1,4 @@
-use std::{ffi::c_char, fmt::Display};
+use std::{ffi::CString, fmt::Display};
 
 use foreign_types::ForeignType;
 
@@ -104,11 +104,13 @@ impl ToExt for SubjectAlternativeName {
                 0,
             );
 
+            let value = CString::new(self.to_string())
+                .expect("Cstring Nul error");
             let ext = X509V3_EXT_conf_nid(
                 std::ptr::null_mut(),
                 ctx,
                 X509ExtNid::SUBJECT_ALT_NAME.nid(),
-                self.to_string().as_ptr() as *const c_char,
+                value.as_ptr(),
             );
 
             X509Ext::from_ptr(ext)

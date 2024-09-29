@@ -1,4 +1,4 @@
-use std::{ffi::c_char, fmt::Display, ops::BitOr};
+use std::{ffi::CString, fmt::Display, ops::BitOr};
 
 use foreign_types::ForeignType;
 
@@ -71,29 +71,6 @@ impl From<&[KeyUsageValue]> for KeyUsage {
     }
 }
 
-impl ToExt for KeyUsage {
-    fn to_ext(&self) -> crate::x509::X509Ext {
-        unsafe {
-            let ctx = std::ptr::null_mut();
-            X509V3_set_ctx(
-                ctx,
-                std::ptr::null_mut(),
-                std::ptr::null_mut(),
-                std::ptr::null_mut(),
-                std::ptr::null_mut(),
-                0,
-            );
-
-            X509Ext::from_ptr(X509V3_EXT_conf_nid(
-                std::ptr::null_mut(),
-                ctx,
-                X509ExtNid::KEY_USAGE.nid(),
-                self.to_string().as_ptr() as *const c_char,
-            ))
-        }
-    }
-}
-
 impl Display for KeyUsage {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         use KeyUsageValue::*;
@@ -135,6 +112,31 @@ impl Display for KeyUsage {
         }
 
         write!(f, "{kus}")
+    }
+}
+
+impl ToExt for KeyUsage {
+    fn to_ext(&self) -> crate::x509::X509Ext {
+        unsafe {
+            let ctx = std::ptr::null_mut();
+            X509V3_set_ctx(
+                ctx,
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+                0,
+            );
+
+            let value = CString::new(self.to_string())
+                .expect("Cstring Nul error");
+            X509Ext::from_ptr(X509V3_EXT_conf_nid(
+                std::ptr::null_mut(),
+                ctx,
+                X509ExtNid::KEY_USAGE.nid(),
+                value.as_ptr(),
+            ))
+        }
     }
 }
 
