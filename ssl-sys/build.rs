@@ -28,6 +28,8 @@ fn main() {
         .allowlist_function("PEM_.*")
         .allowlist_function("OBJ_.*")
         .allowlist_function("GENERAL_.*")
+        .allowlist_function("EDIPARTYNAME_.*")
+        .allowlist_function("OTHERNAME_.*")
         // ALLOW TYPE NAMES
         .allowlist_type("ASN1_.*")
         .allowlist_type("BIO_.*")
@@ -39,6 +41,8 @@ fn main() {
         .allowlist_type("TS_.*")
         .allowlist_type("BN_.*")
         .allowlist_type("GENERAL_.*")
+        .allowlist_type("EDIPARTYNAME_.*")
+        .allowlist_type("OTHERNAME_.*")
         // ALLOW VARS NAMES
         .allowlist_var("BIO_CTRL_.*")
         .allowlist_var("EVP_.*")

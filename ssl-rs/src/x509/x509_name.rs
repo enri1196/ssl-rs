@@ -1,5 +1,5 @@
 use std::{
-    ffi::{c_char, CString},
+    ffi::CString,
     fmt::Display,
 };
 
@@ -66,13 +66,13 @@ impl X509NameBuilder {
 
     pub fn add_entry_txt(self, key: &str, value: &str) -> Self {
         unsafe {
-            let c_val = CString::new(value).unwrap();
+            let c_key = CString::new(key.to_string()).unwrap();
             X509_NAME_add_entry_by_txt(
                 self.0.as_ptr(),
-                key.as_ptr() as *const c_char,
+                c_key.as_ptr(),
                 MBSTRING_ASC as i32,
-                c_val.as_ptr(),
-                -1,
+                value.as_ptr(),
+                value.len() as i32,
                 -1,
                 0,
             );
@@ -83,13 +83,12 @@ impl X509NameBuilder {
     pub fn add_entry(self, key: X509Entry, value: &str) -> Self {
         unsafe {
             let c_key = CString::new(key.to_string()).unwrap();
-            let c_val = CString::new(value).unwrap();
             X509_NAME_add_entry_by_txt(
                 self.0.as_ptr(),
                 c_key.as_ptr(),
                 MBSTRING_ASC as i32,
-                c_val.as_ptr(),
-                -1,
+                value.as_ptr(),
+                value.len() as i32,
                 -1,
                 0,
             );

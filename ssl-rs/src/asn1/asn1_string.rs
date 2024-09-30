@@ -36,3 +36,9 @@ impl Asn1String {
         }
     }
 }
+
+impl From<&str> for Asn1String {
+    fn from(s: &str) -> Self {
+        Asn1String::new(Asn1Type::Utf8String, s.as_bytes())
+    }
+}
