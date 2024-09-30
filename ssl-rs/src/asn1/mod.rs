@@ -35,7 +35,7 @@ pub enum Asn1Type {
     // T61String = V_ASN1_T61STRING,
     // TeletexString = V_ASN1_TELETEXSTRING,
     VideotexString = V_ASN1_VIDEOTEXSTRING,
-    Ia5String = V_ASN1_IA5STRING,
+    IA5String = V_ASN1_IA5STRING,
     UtcTime = V_ASN1_UTCTIME,
     GeneralizedTime = V_ASN1_GENERALIZEDTIME,
     GraphicString = V_ASN1_GRAPHICSTRING,
