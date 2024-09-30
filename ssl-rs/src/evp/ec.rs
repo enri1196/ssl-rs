@@ -10,6 +10,8 @@ use crate::{
     ssl::*,
 };
 
+use super::EvpPkeyRef;
+
 #[derive(Debug, Clone, Copy)]
 pub enum CurveNid {
     Prime256v1,
@@ -140,6 +142,12 @@ pub(crate) enum RawKeyType {
 
 #[derive(Clone)]
 pub struct EcKey<KT: KeyType>(EvpPkey<KT>);
+
+impl<KT: KeyType> AsRef<EvpPkeyRef<KT>> for EcKey<KT> {
+    fn as_ref(&self) -> &EvpPkeyRef<KT> {
+        &self.0
+    }
+}
 
 impl EcKey<Private> {
     pub fn new_ec(curve: CurveNid) -> Result<Self, ErrorStack> {

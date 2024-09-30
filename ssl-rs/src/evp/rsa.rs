@@ -9,6 +9,8 @@ use crate::{
     ssl::*,
 };
 
+use super::EvpPkeyRef;
+
 #[derive(Debug, Clone, Copy)]
 #[repr(u32)]
 pub enum RsaSize {
@@ -19,6 +21,12 @@ pub enum RsaSize {
 
 #[derive(Clone)]
 pub struct RsaKey<KT: KeyType>(EvpPkey<KT>);
+
+impl<KT: KeyType> AsRef<EvpPkeyRef<KT>> for RsaKey<KT> {
+    fn as_ref(&self) -> &EvpPkeyRef<KT> {
+        &self.0
+    }
+}
 
 impl RsaKey<Private> {
     pub fn new_rsa(size: RsaSize) -> Result<Self, ErrorStack> {

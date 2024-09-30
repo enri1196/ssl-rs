@@ -10,15 +10,15 @@ pub struct Ecdh(Vec<u8>);
 
 impl Ecdh {
     pub fn generate_secret(
-        first_pkey: &EvpPkeyRef<Private>,
-        second_pkey: &EvpPkeyRef<Public>,
+        first_pkey: &impl AsRef<EvpPkeyRef<Private>>,
+        second_pkey: &impl AsRef<EvpPkeyRef<Public>>,
     ) -> Result<Self, ErrorStack> {
         unsafe {
-            let derive_ctx = EvpCtx::try_from(first_pkey)?;
+            let derive_ctx = EvpCtx::try_from(first_pkey.as_ref())?;
             crate::check_code(EVP_PKEY_derive_init(derive_ctx.as_ptr()))?;
             crate::check_code(EVP_PKEY_derive_set_peer(
                 derive_ctx.as_ptr(),
-                second_pkey.as_ptr(),
+                second_pkey.as_ref().as_ptr(),
             ))?;
             let mut secret_len: usize = 0;
             crate::check_code(EVP_PKEY_derive(
