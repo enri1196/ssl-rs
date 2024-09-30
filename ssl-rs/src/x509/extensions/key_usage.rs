@@ -128,8 +128,7 @@ impl ToExt for KeyUsage {
                 0,
             );
 
-            let value = CString::new(self.to_string())
-                .expect("Cstring Nul error");
+            let value = CString::new(self.to_string()).expect("Cstring Nul error");
             X509Ext::from_ptr(X509V3_EXT_conf_nid(
                 std::ptr::null_mut(),
                 ctx,
