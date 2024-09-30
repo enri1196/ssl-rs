@@ -2,16 +2,24 @@ use std::{ffi::CString, fmt::Display};
 
 use foreign_types::ForeignType;
 
-use crate::{ssl::*, x509::X509Ext};
+use crate::{asn1::GeneralName, ssl::*, x509::X509Ext};
 
 use super::{ToExt, X509ExtNid};
 
 #[derive(Default, Debug, Clone)]
+pub struct GeneralNames(Vec<GeneralName>);
+
+impl GeneralNames {
+    pub fn iter(&self) -> std::slice::Iter<'_, GeneralName> {
+        self.0.iter()
+    }
+}
+
+#[derive(Default, Debug, Clone)]
 pub struct AuthorityKeyIdentifier {
     critical: bool,
-    keyid: Option<String>,
-    authority_cert_issuer: Vec<String>, // Typically, issuer's name or other identifiers
-    authority_cert_serial: Option<String>, // Serial number of the issuer's certificate
+    keyid: Option<bool>,
+    issuer: Option<bool>,
 }
 
 impl AuthorityKeyIdentifier {
@@ -24,61 +32,47 @@ impl AuthorityKeyIdentifier {
         Self {
             critical,
             keyid: None,
-            authority_cert_issuer: Vec::new(),
-            authority_cert_serial: None,
+            issuer: None,
         }
     }
 
-    /// Sets the Key Identifier.
-    pub fn set_keyid(&mut self, keyid: impl Into<String>) -> &mut Self {
-        self.keyid = Some(keyid.into());
+    /// Sets the Key Identifier to true
+    pub fn set_keyid(&mut self, always: Option<bool>) -> &mut Self {
+        self.keyid = always;
         self
     }
 
-    /// Adds an Authority Certificate Issuer.
+    /// Sets Authority Certificate Issuer to true
     ///
     /// This can be the issuer's distinguished name or other identifier.
-    pub fn add_authority_cert_issuer(&mut self, issuer: impl Into<String>) -> &mut Self {
-        self.authority_cert_issuer.push(issuer.into());
-        self
-    }
-
-    /// Sets the Authority Certificate Serial Number.
-    pub fn set_authority_cert_serial(&mut self, serial: impl Into<String>) -> &mut Self {
-        self.authority_cert_serial = Some(serial.into());
+    pub fn set_issuer(&mut self, always: Option<bool>) -> &mut Self {
+        self.issuer = always;
         self
     }
 }
 
 impl Display for AuthorityKeyIdentifier {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut parts = Vec::new();
+        let mut parts: Vec<&str> = Vec::new();
 
         if self.critical {
-            parts.push("critical".to_string());
+            parts.push("critical");
         }
 
-        if let Some(ref keyid) = self.keyid {
-            parts.push(format!("keyid:{}", keyid));
+        match self.keyid {
+            Some(true) => parts.push("keyid:always"),
+            Some(false) => parts.push("keyid"),
+            None => {}
         }
-
-        if !self.authority_cert_issuer.is_empty() {
-            let issuers = self
-                .authority_cert_issuer
-                .iter()
-                .map(|issuer| format!("issuer:{}", issuer))
-                .collect::<Vec<String>>()
-                .join(",");
-            parts.push(issuers);
-        }
-
-        if let Some(ref serial) = self.authority_cert_serial {
-            parts.push(format!("serial:{}", serial));
+        match self.issuer {
+            Some(true) => parts.push("issuer:always"),
+            Some(false) => parts.push("issuer"),
+            None => {}
         }
 
         let value = parts.join(",");
 
-        write!(f, "{value}")
+        write!(f, "{}", value)
     }
 }
 
@@ -95,8 +89,7 @@ impl ToExt for AuthorityKeyIdentifier {
                 0,
             );
 
-            let value = CString::new(self.to_string())
-                .expect("Cstring Nul error");
+            let value = CString::new(self.to_string()).expect("Cstring Nul error");
             let ext = X509V3_EXT_conf_nid(
                 std::ptr::null_mut(),
                 ctx,
@@ -117,14 +110,12 @@ mod tests {
     #[test]
     pub fn test_authority_key_identifier() {
         let mut aki = AuthorityKeyIdentifier::new(true);
-        aki.set_keyid("AB:CD:EF:12:34:56:78:90")
-            .add_authority_cert_issuer("CN=Issuer Example,O=Example Org,C=US")
-            .set_authority_cert_serial("01:23:45:67:89:AB:CD:EF");
+        aki.set_keyid(Some(true)).set_issuer(Some(false));
 
         let aki_ext = aki.to_ext();
 
-        println!("OID: {}", aki_ext.get_oid());
         println!("DATA: {}", aki.to_string());
+        println!("OID: {}", aki_ext.get_oid());
 
         assert_eq!("2.5.29.35", aki_ext.get_oid());
     }
