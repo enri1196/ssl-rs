@@ -18,9 +18,9 @@ foreign_type! {
 impl Asn1String {
     pub fn new(asn1_type: Asn1Type, data: &[u8]) -> Self {
         unsafe {
-            let s = Self::from_ptr(ASN1_STRING_type_new(asn1_type as i32));
-            ASN1_STRING_set0(s.as_ptr(), data.as_ptr() as *mut c_void, data.len() as i32);
-            s
+            let asn1_str = Self::from_ptr(ASN1_STRING_type_new(asn1_type as i32));
+            ASN1_STRING_set(asn1_str.as_ptr(), data.as_ptr() as *mut c_void, data.len() as i32);
+            asn1_str
         }
     }
 
