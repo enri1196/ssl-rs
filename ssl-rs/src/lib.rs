@@ -1,3 +1,5 @@
+#![feature(duration_constructors)]
+
 // internal use only
 use ssl_sys as ssl;
 // exported modules

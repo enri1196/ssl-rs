@@ -1,7 +1,4 @@
-use std::{
-    ffi::CString,
-    fmt::Display,
-};
+use std::{ffi::CString, fmt::Display};
 
 use foreign_types::{foreign_type, ForeignType, ForeignTypeRef};
 
