@@ -1,9 +1,13 @@
 mod asn1_integer;
+mod asn1_object;
+mod asn1_octet_string;
 mod asn1_string;
 mod asn1_time;
 mod general_name;
 
 pub use asn1_integer::*;
+pub use asn1_object::*;
+pub use asn1_octet_string::*;
 pub use asn1_string::*;
 pub use asn1_time::*;
 pub use general_name::*;
