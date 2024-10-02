@@ -38,6 +38,18 @@ impl From<u64> for Asn1Integer {
     }
 }
 
+impl From<&Asn1IntegerRef> for i64 {
+    fn from(value: &Asn1IntegerRef) -> Self {
+        unsafe { ASN1_INTEGER_get(value.as_ptr()) }
+    }
+}
+
+impl From<&Asn1IntegerRef> for u64 {
+    fn from(value: &Asn1IntegerRef) -> Self {
+        unsafe { ASN1_INTEGER_get(value.as_ptr()) as u64 }
+    }
+}
+
 impl TryFrom<&BigNumRef> for Asn1Integer {
     type Error = ErrorStack;
 
