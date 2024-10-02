@@ -173,6 +173,8 @@ impl X509CertBuilder {
 
 #[cfg(test)]
 mod test {
+    use std::time::Duration;
+
     use crate::{
         asn1::{Asn1Integer, Asn1Time},
         error::ErrorStack,
@@ -224,7 +226,7 @@ mod test {
 
         // Create not before and not after times
         let not_before = Asn1Time::now()?;
-        let not_after = Asn1Time::from_days(365)?;
+        let not_after = not_before.add_duration(Duration::from_days(365));
 
         // Generate a key pair
         let pkey: EvpPkey<Private> = RsaKey::new_rsa(RsaSize::Rs2048)?.into();
