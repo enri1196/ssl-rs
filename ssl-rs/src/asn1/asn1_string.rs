@@ -1,6 +1,6 @@
 use std::ffi::c_void;
 
-use foreign_types::{foreign_type, ForeignType};
+use foreign_types::{foreign_type, ForeignType, ForeignTypeRef};
 use num::FromPrimitive;
 
 use crate::ssl::*;
@@ -34,6 +34,18 @@ impl Asn1String {
             // always be a valid asn1 type
             Asn1Type::from_i32(ASN1_STRING_type(self.as_ptr())).unwrap_unchecked()
         }
+    }
+}
+
+impl Asn1StringRef {
+    pub fn len(&self) -> usize {
+        unsafe { ASN1_STRING_length(self.as_ptr() as *const _) as usize }
+    }
+}
+
+impl Default for Asn1String {
+    fn default() -> Self {
+        Asn1String::new(Asn1Type::Utf8String, b"")
     }
 }
 
