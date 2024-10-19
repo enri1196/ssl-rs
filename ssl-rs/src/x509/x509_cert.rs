@@ -155,7 +155,7 @@ impl X509CertBuilder {
 
     pub fn add_extension(self, extension: impl ToExt) -> Self {
         unsafe {
-            let ext = extension.to_ext();
+            let ext = extension.to_ext().unwrap();
             crate::check_code(X509_add_ext(self.x509.as_ptr(), ext.as_ptr(), -1))
                 .expect("Error on add_extension");
             self

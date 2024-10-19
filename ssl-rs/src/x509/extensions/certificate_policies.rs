@@ -2,7 +2,7 @@ use std::{ffi::CString, fmt::Display};
 
 use foreign_types::ForeignType;
 
-use crate::{ssl::*, x509::X509Ext};
+use crate::{error::ErrorStack, ssl::*, x509::X509Ext};
 
 use super::{ToExt, X509ExtNid};
 
@@ -163,11 +163,11 @@ fn quote_string(s: &str) -> String {
 }
 
 impl ToExt for CertificatePolicies {
-    fn to_ext(&self) -> X509Ext {
+    fn to_ext(&self) -> Result<X509Ext, ErrorStack> {
         unsafe {
-            let ctx = std::ptr::null_mut();
+            let mut ctx = std::mem::zeroed::<v3_ext_ctx>();
             X509V3_set_ctx(
-                ctx,
+                &mut ctx,
                 std::ptr::null_mut(),
                 std::ptr::null_mut(),
                 std::ptr::null_mut(),
@@ -175,15 +175,14 @@ impl ToExt for CertificatePolicies {
                 0,
             );
 
-            let value = CString::new(self.to_string()).expect("CString Nul error");
-            let ext = X509V3_EXT_conf_nid(
+            let value = CString::new(self.to_string()).expect("Cstring Nul error");
+            let ptr = crate::check_ptr(X509V3_EXT_conf_nid(
                 std::ptr::null_mut(),
-                ctx,
+                &mut ctx,
                 X509ExtNid::CERTIFICATE_POLICIES.nid(),
                 value.as_ptr(),
-            );
-
-            X509Ext::from_ptr(ext)
+            ))?;
+            Ok(X509Ext::from_ptr(ptr))
         }
     }
 }

@@ -2,7 +2,7 @@ use std::{ffi::CString, fmt::Display, ops::BitOr};
 
 use foreign_types::ForeignType;
 
-use crate::{ssl::*, x509::X509Ext};
+use crate::{error::ErrorStack, ssl::*, x509::X509Ext};
 
 use super::{ToExt, X509ExtNid};
 
@@ -116,11 +116,11 @@ impl Display for KeyUsage {
 }
 
 impl ToExt for KeyUsage {
-    fn to_ext(&self) -> crate::x509::X509Ext {
+    fn to_ext(&self) -> Result<X509Ext, ErrorStack> {
         unsafe {
-            let ctx = std::ptr::null_mut();
+            let mut ctx = std::mem::zeroed::<v3_ext_ctx>();
             X509V3_set_ctx(
-                ctx,
+                &mut ctx,
                 std::ptr::null_mut(),
                 std::ptr::null_mut(),
                 std::ptr::null_mut(),
@@ -129,12 +129,13 @@ impl ToExt for KeyUsage {
             );
 
             let value = CString::new(self.to_string()).expect("Cstring Nul error");
-            X509Ext::from_ptr(X509V3_EXT_conf_nid(
+            let ptr = crate::check_ptr(X509V3_EXT_conf_nid(
                 std::ptr::null_mut(),
-                ctx,
+                &mut ctx,
                 X509ExtNid::KEY_USAGE.nid(),
                 value.as_ptr(),
-            ))
+            ))?;
+            Ok(X509Ext::from_ptr(ptr))
         }
     }
 }
@@ -148,7 +149,7 @@ mod test {
     #[test]
     pub fn key_usage_test() {
         let ku = KeyUsage::from_raw(DigitalSignature | NonRepudiation);
-        let ku_ext = ku.unwrap().to_ext();
+        let ku_ext = ku.unwrap().to_ext().unwrap();
         println!("OID: {}", ku_ext.get_oid());
         println!("DATA: {}", ku.unwrap().to_string());
         assert_eq!("2.5.29.15", ku_ext.get_oid());

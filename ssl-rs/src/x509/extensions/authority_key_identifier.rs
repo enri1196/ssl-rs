@@ -2,7 +2,7 @@ use std::{ffi::CString, fmt::Display};
 
 use foreign_types::ForeignType;
 
-use crate::{asn1::GeneralName, ssl::*, x509::X509Ext};
+use crate::{asn1::GeneralName, error::ErrorStack, ssl::*, x509::X509Ext};
 
 use super::{ToExt, X509ExtNid};
 
@@ -77,11 +77,11 @@ impl Display for AuthorityKeyIdentifier {
 }
 
 impl ToExt for AuthorityKeyIdentifier {
-    fn to_ext(&self) -> X509Ext {
+    fn to_ext(&self) -> Result<X509Ext, ErrorStack> {
         unsafe {
-            let ctx = std::ptr::null_mut();
+            let mut ctx = std::mem::zeroed::<v3_ext_ctx>();
             X509V3_set_ctx(
-                ctx,
+                &mut ctx,
                 std::ptr::null_mut(),
                 std::ptr::null_mut(),
                 std::ptr::null_mut(),
@@ -90,14 +90,14 @@ impl ToExt for AuthorityKeyIdentifier {
             );
 
             let value = CString::new(self.to_string()).expect("Cstring Nul error");
-            let ext = X509V3_EXT_conf_nid(
+            let ext = crate::check_ptr(X509V3_EXT_conf_nid(
                 std::ptr::null_mut(),
-                ctx,
+                &mut ctx,
                 X509ExtNid::AUTHORITY_KEY_IDENTIFIER.nid(),
                 value.as_ptr(),
-            );
+            ))?;
 
-            X509Ext::from_ptr(ext)
+            Ok(X509Ext::from_ptr(ext))
         }
     }
 }
@@ -112,7 +112,7 @@ mod tests {
         let mut aki = AuthorityKeyIdentifier::new(true);
         aki.set_keyid(Some(true)).set_issuer(Some(false));
 
-        let aki_ext = aki.to_ext();
+        let aki_ext = aki.to_ext().unwrap();
 
         println!("DATA: {}", aki.to_string());
         println!("OID: {}", aki_ext.get_oid());

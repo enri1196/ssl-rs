@@ -17,10 +17,10 @@ pub use subject_alt_name::*;
 pub use subject_key_indentifier::*;
 
 use super::X509Ext;
-use crate::ssl::*;
+use crate::{error::ErrorStack, ssl::*};
 
 pub trait ToExt {
-    fn to_ext(&self) -> X509Ext;
+    fn to_ext(&self) -> Result<X509Ext, ErrorStack>;
 }
 
 pub struct X509ExtNid(&'static str, &'static str, i32);
