@@ -1,7 +1,7 @@
 use foreign_types::{foreign_type, ForeignType, ForeignTypeRef};
 
 use crate::{
-    asn1::{Asn1IntegerRef, Asn1ObjectRef, Asn1OctetStringRef},
+    asn1::{Asn1Integer, Asn1IntegerRef, Asn1ObjectRef, Asn1OctetStringRef},
     error::ErrorStack,
     ssl::*,
     x509::{X509AlgRef, X509ExtRef},
@@ -105,7 +105,7 @@ pub struct TsReqBuilder {
     version: Option<i64>,
     msg_imprint: Option<TsMsgImprint>,
     req_policy: Option<TsaPolicyId>,
-    nonce: Option<Asn1IntegerRef>,
+    nonce: Option<Asn1Integer>,
     cert_req: Option<bool>,
     extensions: Vec<X509ExtRef>,
 }
@@ -137,7 +137,7 @@ impl TsReqBuilder {
         self
     }
 
-    pub fn nonce(mut self, nonce: &Asn1IntegerRef) -> Self {
+    pub fn nonce(mut self, nonce: Asn1Integer) -> Self {
         self.nonce = Some(nonce);
         self
     }
