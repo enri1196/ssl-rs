@@ -55,8 +55,8 @@ impl TryFrom<&BigNumRef> for Asn1Integer {
 
     fn try_from(value: &BigNumRef) -> Result<Self, Self::Error> {
         unsafe {
-            let bn_ptr =
-                crate::check_ptr(BN_to_ASN1_INTEGER(value.as_ptr(), std::ptr::null_mut()))?;
+            let bn_ptr = BN_to_ASN1_INTEGER(value.as_ptr(), std::ptr::null_mut());
+            let bn_ptr = crate::check_ptr(bn_ptr)?;
             Ok(Self::from_ptr(bn_ptr))
         }
     }
@@ -65,10 +65,11 @@ impl TryFrom<&BigNumRef> for Asn1Integer {
 impl Display for Asn1IntegerRef {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         unsafe {
-            let bn = BigNum::try_from(self).unwrap();
+            let bn = BigNum::try_from(self)
+                .map_err(|_| std::fmt::Error)?;
             let bn = CString::from_raw(BN_bn2dec(bn.as_ptr()))
                 .into_string()
-                .unwrap();
+                .map_err(|_| std::fmt::Error)?;
             write!(f, "{bn}")
         }
     }
