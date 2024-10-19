@@ -1,7 +1,8 @@
 use crate::ssl::*;
 use digest::{Digest, Output, OutputSizeUser};
 use foreign_types::{foreign_type, ForeignType};
-use generic_array::{ArrayLength, GenericArray};
+use generic_array::ArrayLength;
+use hybrid_array::{Array, ArraySize};
 use std::marker::PhantomData;
 use std::ptr;
 use typenum::{U16, U20, U28, U32, U48, U64};
@@ -21,7 +22,7 @@ impl Default for EvpMdCtx {
 }
 
 pub trait MessageDigestTrait: Clone + Default {
-    type OutputSize: ArrayLength<u8> + 'static;
+    type OutputSize: ArrayLength + ArraySize + 'static;
     const OUTPUT_SIZE: usize;
 
     unsafe fn to_md() -> *const EVP_MD;
@@ -287,7 +288,7 @@ impl<MD: MessageDigestTrait> Digest for DigestAlgorithm<MD> {
 
     fn finalize(self) -> Output<Self> {
         unsafe {
-            let mut digest = GenericArray::<u8, MD::OutputSize>::default();
+            let mut digest = Array::<u8, MD::OutputSize>::default();
             let mut digest_len: u32 = 0;
             crate::check_code(EVP_DigestFinal_ex(
                 self.ctx.as_ptr(),
