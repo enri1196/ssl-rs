@@ -6,15 +6,17 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-libc = "0.2.158"
-thiserror = "1.0.63"
+libc = "0.2.162"
+thiserror = "2.0.1"
 foreign-types = "0.5.0"
 chrono = "0.4.38"
 strum = { version = "0.26.3", features = ["derive"] }
 num = "0.4.3"
 num-derive = "0.4.2"
 num-traits = "0.2.19"
-signature = { version = "2.2.0", features = ["std"] }
+signature = { version = "2.3.0-pre.4", features = ["std"] }
+async-signature = { version = "0.6.0-pre.4", features = ["digest"] }
+cipher = "0.4.4"
 digest = { version = "0.11.0-pre.9", features = ["std"] }
 generic-array = "1.1.0"
 typenum = "1.17.0"
