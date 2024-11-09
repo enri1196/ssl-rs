@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-libc = "0.2.162"
+libc = "0.2.158"
 thiserror = "2.0.1"
 foreign-types = "0.5.0"
 chrono = "0.4.38"
